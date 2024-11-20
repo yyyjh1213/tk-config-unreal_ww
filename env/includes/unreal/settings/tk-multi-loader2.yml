@@ -11,6 +11,7 @@ settings.tk-multi-loader2.unreal:
     Maya FBX: [import_content]
     Unreal FBX: [import_content]
   actions_hook: '{engine}/tk-multi-loader2/tk-unreal_actions.py'
+  post_load_hook: '{config}/hooks/tk-multi-loader2/post_load.py'
   entities:
   - caption: Assets
     entity_type: Asset
