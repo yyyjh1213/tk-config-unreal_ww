@@ -125,6 +125,7 @@ class UnrealActions(HookBaseClass):
         :return destination_path that matches a template and destination_name from asset or published file
         """
 
+        print("*"*50)
         print("*"*20, "get destination path and name", "*"*20)
 
         # Enable if needed while in development
@@ -178,6 +179,11 @@ class UnrealActions(HookBaseClass):
             destination_name = destination_name_template.apply_fields(name_fields)
         except Exception:
             destination_name = _sanitize_name(sg_publish_data["code"])
+
+        print("*"*50)
+        print("*"*10, f"destination_path : {destination_path}")
+        print("*"*10, f"destination_name : {destination_name}")
+        print("*"*50)
 
         return destination_path, destination_name
 
