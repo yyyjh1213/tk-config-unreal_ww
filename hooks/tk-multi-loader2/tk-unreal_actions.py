@@ -20,6 +20,8 @@ class UnrealActions(HookBaseClass):
     # 이 클래스가 확장 가능하고 커스텀할 수 있는 기본 구현임
 
     def generate_actions(self, sg_publish_data, actions, ui_area): # 특정 publish에 대한 action 리스트 생성
+
+        print("="*10, "generate_actions 함수 실행")
         app = self.parent
         app.log_debug("Generate actions called for UI element %s. "
                       "Actions: %s. Publish Data: %s" % (ui_area, actions, sg_publish_data))
@@ -36,7 +38,7 @@ class UnrealActions(HookBaseClass):
 
     def execute_multiple_actions(self, actions): # 리스트의 각 원소 액션에 대해 execute_actions() 실행
 
-        print("="*20, "execute_multiple_actions")
+        print("="*10, "execute_multiple_actions 함수 실행")
 
         for single_action in actions:
             name = single_action["name"]
@@ -44,13 +46,13 @@ class UnrealActions(HookBaseClass):
             params = single_action["params"]
             self.execute_action(name, params, sg_publish_data)
 
-            print("="*20, f"name : {name}")
-            print("="*20, f"sg_publish_data : {sg_publish_data}")
-            print("="*20, f"params : {params}")
+            print("="*10, f"name : {name}")
+            print("="*10, f"sg_publish_data : {sg_publish_data}")
+            print("="*10, f"params : {params}")
 
     def execute_action(self, name, params, sg_publish_data): # generate_actions에서 정의된 작업 실행
 
-        print("="*20, "execute_action")
+        print("="*10, "execute_action 함수 실행")
 
         app = self.parent
         app.log_debug("Execute action called for action %s. "
@@ -58,7 +60,7 @@ class UnrealActions(HookBaseClass):
 
         # resolve path
         path = self.get_publish_path(sg_publish_data)
-        print("="*20, f"resolve path라고 하는 path 변수 출력 : {path}")
+        print("="*10, f"resolve path라고 하는 path 변수 출력 : {path}")
 
         if name == "import_content":
             self._import_to_content_browser(path, sg_publish_data)
@@ -73,7 +75,7 @@ class UnrealActions(HookBaseClass):
         # ShotGrid 정보(created_by, URL 등)를 기반으로 태그 설정
         # unreal.EditorAssetLibrary를 사용해 메타데이터를 저장
 
-        print("="*20, "_import_to_content_browser")
+        print("="*10, "_import_to_content_browser 함수 실행")
 
         unreal.log("File to import: {}".format(path))
 
@@ -96,6 +98,7 @@ class UnrealActions(HookBaseClass):
     def _set_asset_metadata(self, asset_path, sg_publish_data): # 콘텐츠 브라우저에 가져온 에셋에 메타데이터를 추가 (에셋 생성자, shotgun url)
         asset = unreal.EditorAssetLibrary.load_asset(asset_path)
 
+        print("_set_asset_metadata 함수 실행")
         print("="*20, f"asset : {asset}")
 
         if not asset:
@@ -114,7 +117,7 @@ class UnrealActions(HookBaseClass):
 
             tag = engine.get_metadata_tag("created_by")
 
-            print("="*20, f"name : {name}\nid : {id}\ntag : {tag}")
+            # print("="*20, f"name : {name}\nid : {id}\ntag : {tag}")
 
             unreal.EditorAssetLibrary.set_metadata_tag(asset, tag, name)
 
@@ -127,7 +130,7 @@ class UnrealActions(HookBaseClass):
         url = shotgun_site + "/detail/" + type + "/" + str(id)
         tag = engine.get_metadata_tag("url")
 
-        print("="*20, f"type : {type}\nid : {id}\nurl : {url}\ntag : {tag}")
+        # print("="*20, f"type : {type}\nid : {id}\nurl : {url}\ntag : {tag}")
 
         unreal.EditorAssetLibrary.set_metadata_tag(asset, tag, url)
         unreal.EditorAssetLibrary.save_loaded_asset(asset)
@@ -143,6 +146,7 @@ class UnrealActions(HookBaseClass):
         :param sg_publish_data: Shotgun data dictionary with all the standard publish fields.
         :return destination_path that matches a template and destination_name from asset or published file
         """
+        print("*"*10, "_get_destination_path_and_name 함수 실행")
 
         # Enable if needed while in development
         # self.sgtk.reload_templates()
@@ -173,9 +177,9 @@ class UnrealActions(HookBaseClass):
         # Query the fields needed for the destination template from the context
         fields = context.as_template_fields(destination_template)
 
-        print("*"*50, "_get_destination_path_and_name 함수 name, field 변수 확인")
-        print("*"*20, f"name : {name}")
-        print("*"*20, f"fields = {fields}")
+        print("*"*10, "_get_destination_path_and_name 함수 name, field 변수 확인")
+        print("*"*10, f"name : {name}")
+        print("*"*10, f"fields = {fields}")
 
         # Add the name field from the publish data
         fields["name"] = name
@@ -200,7 +204,7 @@ class UnrealActions(HookBaseClass):
         except Exception:
             destination_name = _sanitize_name(sg_publish_data["code"])
 
-        print("*"*50, "_get_destination_path_and_name 함수 리턴 값 확인")
+        print("*"*10, "_get_destination_path_and_name 함수 리턴 값 확인")
         print("*"*10, f"destination_path : {destination_path}")
         print("*"*10, f"destination_name : {destination_name}")
 
@@ -213,6 +217,9 @@ Functions to import FBX into Unreal
 
 
 def _sanitize_name(name): # 에셋 이름에서 버전 번호 제거
+    
+    print("*"*10, "_sanitize_name 함수 실행")
+
     # Remove the default Shotgun versioning number if found (of the form '.v001')
     name_no_version = re.sub(r'.v[0-9]{3}', '', name)
 
@@ -228,6 +235,9 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     :param destination_path: The Content Browser path where the asset will be placed
     :param destination_name: The asset name to use; if None, will use the filename without extension
     """
+
+    print("*"*10, "_unreal_import_fbx_asset 함수 실행")
+
     tasks = []
     tasks.append(_generate_fbx_import_task(input_path, destination_path, destination_name))
 
@@ -263,6 +273,9 @@ def _generate_fbx_import_task( # Unreal의 에셋 가져오기 작업(AssetImpor
     :param destination_path: The Content Browser path where the asset will be placed
     :return the configured AssetImportTask
     """
+
+    print("*"*10, "_generate_fbx_import_task 함수 실행")
+
     task = unreal.AssetImportTask()
     task.filename = filename
     task.destination_path = destination_path
