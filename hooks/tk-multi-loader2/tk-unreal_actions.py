@@ -61,6 +61,7 @@ class UnrealActions(HookBaseClass):
         # resolve path
         path = self.get_publish_path(sg_publish_data)
         print("="*10, f"resolve path라고 하는 path 변수 출력 : {path}")
+        # C:\show\project_tiger\assets\char\hodol\LOK\pub\fbx\hodol_lookdev.v001.fbx
 
         if name == "import_content":
             self._import_to_content_browser(path, sg_publish_data)
@@ -255,7 +256,7 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     return first_imported_object
 
 
-def _generate_fbx_import_task( # Unreal의 에셋 가져오기 작업(AssetImportTask) 구성, import 옵션 설정(materials,  texture, 메시 유형 등)
+def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import_asset_tasks 메서드로 실행)
     filename,
     destination_path,
     destination_name=None,
@@ -276,24 +277,29 @@ def _generate_fbx_import_task( # Unreal의 에셋 가져오기 작업(AssetImpor
 
     print("*"*10, "_generate_fbx_import_task 함수 실행")
 
+    # AssetImportTask 객체 생성
     task = unreal.AssetImportTask()
     task.filename = filename
     task.destination_path = destination_path
 
+    # 에셋 이름 지정
     # By default, destination_name is the filename without the extension
     if destination_name is not None:
         task.destination_name = destination_name
 
+    # import 옵션 설정
     task.replace_existing = replace_existing
     task.automated = automated
     task.save = save
 
+    # fbx ImportUI 옵션 설정
     task.options = unreal.FbxImportUI()
     task.options.import_materials = materials
     task.options.import_textures = textures
     task.options.import_as_skeletal = as_skeletal
     # task.options.static_mesh_import_data.combine_meshes = True
 
+    # 메시 유형 설정
     task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_STATIC_MESH
     if as_skeletal:
         task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_SKELETAL_MESH
