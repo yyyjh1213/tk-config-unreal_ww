@@ -154,22 +154,67 @@ class UnrealActions(HookBaseClass):
 
         # Get the publish context to determine the template to use
         context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
-
+        asset_class = None
+        try:
+            asset_data = unreal.EditorAssetLibrary.find_asset_data(asset_path)
+            if asset_data.is_valid():
+                asset_class = asset_data.get_asset().get_class().get_name()
+        except Exception as e:
+            print(f"Error retrieving Unreal asset class: {e}")
+            
         # Get the destination templates based on the context
         # Assets and Shots supported by default
         # Other entities fall back to Project
-        if context.entity is None:
+        # if context.entity is None:
+        #     destination_template = self.sgtk.templates["unreal_loader_project_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
+        # elif context.entity["type"] == "Asset":
+        #     destination_template = self.sgtk.templates["unreal_loader_asset_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_asset_name"]
+        # elif context.entity["type"] == "Shot":
+        #     destination_template = self.sgtk.templates["unreal_loader_shot_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_shot_name"]
+        # else:
+        #     destination_template = self.sgtk.templates["unreal_loader_project_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
+        if asset_class is None:
             destination_template = self.sgtk.templates["unreal_loader_project_path"]
             destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
-        elif context.entity["type"] == "Asset":
-            destination_template = self.sgtk.templates["unreal_loader_asset_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_asset_name"]
-        elif context.entity["type"] == "Shot":
-            destination_template = self.sgtk.templates["unreal_loader_shot_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_shot_name"]
+  
+        elif asset_class == "StaticMesh":
+            destination_template = self.sgtk.templates["unreal_loader_staticmesh_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_staticmesh_name"]
+        elif asset_class == "SkeletalMesh":
+            destination_template = self.sgtk.templates["unreal_loader_skeletalmesh_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_skeletalmesh_name"]
+        elif asset_class == "PhysicsAsset":
+            destination_template = self.sgtk.templates["unreal_loader_physicsasset_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_physicsasset_name"]
+        elif asset_class == "Material":
+            destination_template = self.sgtk.templates["unreal_loader_material_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_material_name"]
+        elif asset_class == "Texture2D":
+            destination_template = self.sgtk.templates["unreal_loader_texture_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_texture_name"]
+
+        elif asset_class == "NiagaraSystem":
+            destination_template = self.sgtk.templates["unreal_loader_fx_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_fx_name"]
+        elif asset_class == "GroomAsset":
+            destination_template = self.sgtk.templates["unreal_loader_groom_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_groom_name"]
+
+        elif asset_class == "AnimSequence":
+            destination_template = self.sgtk.templates["unreal_loader_animation_sq_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_animation_sq_name"]
+        elif asset_class == "TakeRecorder": # 퍼포먼스 캡처
+            destination_template = self.sgtk.templates["unreal_loader_performancecapture_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_performancecapture_name"]
+
         else:
             destination_template = self.sgtk.templates["unreal_loader_project_path"]
             destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
+
 
         # Get the name field from the Publish Data
         name = sg_publish_data["name"]

@@ -65,3 +65,21 @@ strings:
     unreal_loader_shot_name: "TT_{ue_sg_shot_name}_{name}"
     unreal_loader_project_path: "/Game/Assets/"
     unreal_loader_project_name: "TT_{name}"
+    
+    # Assets (mesh, material, texture)
+    unreal_loader_staticmesh_path: "/Game/Assets/SM/"
+    unreal_loader_staticmesh_name: "SM_{name}"
+    unreal_loader_skeletalmesh_path: "/Game/Assets/SK/"
+    unreal_loader_skeletalmesh_name: "SK_{name}"
+    unreal_loader_physicsasset_path: "/Game/Assets/PHYS/"
+    unreal_loader_physicsasset_name: "PHYS_{name}"
+    unreal_loader_material_path: "/Game/Assets/M/"
+    unreal_loader_material_name: "M_{name}" # M_ 또는 MI_
+    unreal_loader_texture_path: "/Game/Assets/T/"
+    unreal_loader_texture_name: "T_{name}"
+
+    # Assets (fur, fx)
+    unreal_loader_fx_path: "/Game/Assets/NS/"
+    unreal_loader_fx_name: "NS_{name}"
+    unreal_loader_groom_path: "/Game/Assets/GR/"
+    unreal_loader_groom_name: "GR_{name}" # 임의로 정함
