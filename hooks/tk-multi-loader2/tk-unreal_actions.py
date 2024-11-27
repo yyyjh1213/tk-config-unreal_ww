@@ -155,13 +155,14 @@ class UnrealActions(HookBaseClass):
 
         # Get the publish context to determine the template to use
         context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
-        # asset_class = None
-        try:
-            asset_data = unreal.EditorAssetLibrary.find_asset_data(asset_path)
-            if asset_data.is_valid():
-                asset_class = asset_data.get_asset().get_class().get_name()
-        except Exception as e:
-            print(f"Error retrieving Unreal asset class: {e}")
+        asset_class = _guess_asset_type_from_data(sg_publish_data)
+
+        # try:
+        #     asset_data = unreal.EditorAssetLibrary.find_asset_data(asset_path)
+        #     if asset_data.is_valid():
+        #         asset_class = asset_data.get_asset().get_class().get_name()
+        # except Exception as e:
+        #     print(f"Error retrieving Unreal asset class: {e}")
         
         print("+"*30)
         print("+"*10, f"asset_class : {asset_class}")
@@ -302,6 +303,9 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
             if not first_imported_object:
                 first_imported_object = object_path
 
+    import unreal_rename
+    unreal_rename.test_function()
+
     return first_imported_object
 
 
@@ -354,3 +358,22 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
         task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_SKELETAL_MESH
 
     return task
+
+
+def _guess_asset_type_from_data(sg_publish_data):
+    """
+    파일명, description으로 찾기"""
+
+    name = sg_publish_data.get("code", "").lower()
+    description = sg_publish_data.get("description", "").lower()
+    
+    # Animation 관련 키워드 체크
+    if any(keyword in name or keyword in description for keyword in ["anim", "ani", "sequence"]):
+        return "AnimSequence"
+        
+    # Skeletal Mesh 관련 키워드 체크
+    if any(keyword in name or keyword in description for keyword in ["skel", "rig", "character"]):
+        return "SkeletalMesh"
+        
+    # 기본값으로 StaticMesh 반환
+    return "StaticMesh"
