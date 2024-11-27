@@ -148,12 +148,13 @@ class UnrealActions(HookBaseClass):
         :return destination_path that matches a template and destination_name from asset or published file
         """
         print("+"*10, "_get_destination_path_and_name 함수 실행")
+        print("+"*10, f"sg_publish_data : {sg_publish_data}")
 
         # Enable if needed while in development
         # self.sgtk.reload_templates()
 
         # Get the publish context to determine the template to use
-        # context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
+        context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
         asset_class = None
         try:
             asset_data = unreal.EditorAssetLibrary.find_asset_data(asset_path)
