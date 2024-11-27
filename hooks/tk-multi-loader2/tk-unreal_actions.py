@@ -147,13 +147,13 @@ class UnrealActions(HookBaseClass):
         :param sg_publish_data: Shotgun data dictionary with all the standard publish fields.
         :return destination_path that matches a template and destination_name from asset or published file
         """
-        print("*"*10, "_get_destination_path_and_name 함수 실행")
+        print("+"*10, "_get_destination_path_and_name 함수 실행")
 
         # Enable if needed while in development
         # self.sgtk.reload_templates()
 
         # Get the publish context to determine the template to use
-        context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
+        # context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
         asset_class = None
         try:
             asset_data = unreal.EditorAssetLibrary.find_asset_data(asset_path)
@@ -161,7 +161,10 @@ class UnrealActions(HookBaseClass):
                 asset_class = asset_data.get_asset().get_class().get_name()
         except Exception as e:
             print(f"Error retrieving Unreal asset class: {e}")
-            
+        
+        print("+"*30)
+        print("+"*10, f"asset_class : {asset_class}")
+
         # Get the destination templates based on the context
         # Assets and Shots supported by default
         # Other entities fall back to Project

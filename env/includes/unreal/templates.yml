@@ -59,12 +59,12 @@ strings:
    # entity-specific templates for importing files into the Unreal content browser
     # template logic is defined in Python, not settings:
     # tk-unreal/hooks/tk-multi-loader2/tk-unreal_actions.py
-    unreal_loader_asset_path: "/Game/Assets/TestT/{ue_sg_asset_type}/{ue_sg_asset_name}/"
-    unreal_loader_asset_name: "TT_{ue_sg_asset_name}_{name}"
-    unreal_loader_shot_path: "/Game/Cinematics/Sequences/TestT/{ue_sg_sequence_name}/{ue_sg_shot_name}/"
-    unreal_loader_shot_name: "TT_{ue_sg_shot_name}_{name}"
+    unreal_loader_asset_path: "/Game/Assets/AST/{ue_sg_asset_type}/{ue_sg_asset_name}/"
+    unreal_loader_asset_name: "ASSET_{ue_sg_asset_name}_{name}"
+    unreal_loader_shot_path: "/Game/Cinematics/Sequences/SEQ/{ue_sg_sequence_name}/{ue_sg_shot_name}/"
+    unreal_loader_shot_name: "SHOT_{ue_sg_shot_name}_{name}"
     unreal_loader_project_path: "/Game/Assets/"
-    unreal_loader_project_name: "TT_{name}"
+    unreal_loader_project_name: "PROJECT_{name}"
     
     # Assets (mesh, material, texture)
     unreal_loader_staticmesh_path: "/Game/Assets/SM/"
