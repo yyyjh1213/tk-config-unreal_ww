@@ -155,7 +155,7 @@ class UnrealActions(HookBaseClass):
 
         # Get the publish context to determine the template to use
         context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
-        asset_class = None
+        # asset_class = None
         try:
             asset_data = unreal.EditorAssetLibrary.find_asset_data(asset_path)
             if asset_data.is_valid():
