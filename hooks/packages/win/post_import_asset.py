@@ -14,3 +14,4 @@ def post_import_asset(asset):
 
 # 연결
 unreal.EditorAssetLibrary.on_asset_imported().add_callable(post_import_asset)
+unreal.log("Event handler registered.")

@@ -7,6 +7,7 @@ Hook that loads defines all the available actions, broken down by publish type.
 """
 
 import os
+import sys
 import sgtk
 import unreal
 import re
@@ -302,6 +303,14 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
             unreal.log("Imported object: {}".format(object_path))
             if not first_imported_object:
                 first_imported_object = object_path
+
+
+    # packages/win 디렉토리 경로 설정
+    win_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages/win"))
+
+    # sys.path에 경로 추가
+    if win_dir not in sys.path:
+        sys.path.append(win_dir)
 
     import unreal_rename
     unreal_rename.test_function()
