@@ -22,7 +22,7 @@ class UnrealActions(HookBaseClass):
 
     def generate_actions(self, sg_publish_data, actions, ui_area): # 특정 publish에 대한 action 리스트 생성
 
-        print("="*10, "generate_actions 함수 실행")
+        print("*"*10, "generate_actions 함수 실행")
         app = self.parent
         app.log_debug("Generate actions called for UI element %s. "
                       "Actions: %s. Publish Data: %s" % (ui_area, actions, sg_publish_data))
@@ -39,7 +39,7 @@ class UnrealActions(HookBaseClass):
 
     def execute_multiple_actions(self, actions): # 리스트의 각 원소 액션에 대해 execute_actions() 실행
 
-        print("="*10, "execute_multiple_actions 함수 실행")
+        print("*"*10, "execute_multiple_actions 함수 실행")
 
         for single_action in actions:
             name = single_action["name"]
@@ -53,7 +53,7 @@ class UnrealActions(HookBaseClass):
 
     def execute_action(self, name, params, sg_publish_data): # generate_actions에서 정의된 작업 실행
 
-        print("="*10, "execute_action 함수 실행")
+        print("*"*10, "execute_action 함수 실행")
 
         app = self.parent
         app.log_debug("Execute action called for action %s. "
@@ -61,7 +61,7 @@ class UnrealActions(HookBaseClass):
 
         # resolve path
         path = self.get_publish_path(sg_publish_data)
-        print("="*10, f"resolve path라고 하는 path 변수 출력 : {path}")
+        print("*"*10, f"resolve path라는 path 변수 출력 : {path}")
         # C:\show\project_tiger\assets\char\hodol\LOK\pub\fbx\hodol_lookdev.v001.fbx
 
         if name == "import_content":
@@ -77,7 +77,7 @@ class UnrealActions(HookBaseClass):
         # ShotGrid 정보(created_by, URL 등)를 기반으로 태그 설정
         # unreal.EditorAssetLibrary를 사용해 메타데이터를 저장
 
-        print("="*10, "_import_to_content_browser 함수 실행")
+        print("*"*10, "_import_to_content_browser 함수 실행")
 
         unreal.log("File to import: {}".format(path))
 
@@ -100,8 +100,8 @@ class UnrealActions(HookBaseClass):
     def _set_asset_metadata(self, asset_path, sg_publish_data): # 콘텐츠 브라우저에 가져온 에셋에 메타데이터를 추가 (에셋 생성자, shotgun url)
         asset = unreal.EditorAssetLibrary.load_asset(asset_path)
 
-        print("_set_asset_metadata 함수 실행")
-        print("="*20, f"asset : {asset}")
+        print("*"*10, "_set_asset_metadata 함수 실행")
+        print("*"*20, f"asset : {asset}")
 
         if not asset:
             return
@@ -148,8 +148,8 @@ class UnrealActions(HookBaseClass):
         :param sg_publish_data: Shotgun data dictionary with all the standard publish fields.
         :return destination_path that matches a template and destination_name from asset or published file
         """
-        print("+"*10, "_get_destination_path_and_name 함수 실행")
-        print("+"*10, f"sg_publish_data : {sg_publish_data}")
+        print("*"*10, "_get_destination_path_and_name 함수 실행")
+        print("*"*10, f"sg_publish_data : {sg_publish_data}")
 
         # Enable if needed while in development
         # self.sgtk.reload_templates()
@@ -165,8 +165,8 @@ class UnrealActions(HookBaseClass):
         # except Exception as e:
         #     print(f"Error retrieving Unreal asset class: {e}")
         
-        print("+"*30)
-        print("+"*10, f"asset_class : {asset_class}")
+        print("*"*30)
+        print("*"*10, f"asset_class : {asset_class}")
 
         # Get the destination templates based on the context
         # Assets and Shots supported by default
@@ -318,7 +318,7 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     return first_imported_object
 
 
-def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import_asset_tasks 메서드로 실행)
+def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import_asset_tasks 메서드로 실행
     filename,
     destination_path,
     destination_name=None,
@@ -372,6 +372,7 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
 def _guess_asset_type_from_data(sg_publish_data):
     """
     파일명, description으로 찾기"""
+    print("*"*10, "_guess_asset_type_from_data 함수 실행")
 
     name = sg_publish_data.get("code", "").lower()
     description = sg_publish_data.get("description", "").lower()
