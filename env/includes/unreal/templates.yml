@@ -83,3 +83,10 @@ strings:
     unreal_loader_fx_name: "NS_{name}"
     unreal_loader_groom_path: "/Game/Assets/GR/"
     unreal_loader_groom_name: "GR_{name}" # 임의로 정함
+
+    # Shot (animation sequence, performance capture)
+    unreal_loader_animation_sq_path: "/Game/LevelSequence/{ue_sg_sequence_name}/{ue_sg_shot_name}/{ue_sg_shot_name}_char/AS"
+    unreal_loader_animation_sq_name: "AS_{ue_sg_shot_name}"
+    unreal_loader_performancecapture_path: "/Game/LevelSequence/{ue_sg_sequence_name}/{ue_sg_shot_name}/{ue_sg_shot_name}_char/PC"
+    unreal_loader_performancecapture_name: "PC_{ue_sg_shot_name}"
+    # 애니 데이터가 SQ에 들어가야 하는지 Asset에 들어가야 하는지 잘 모르겠음
