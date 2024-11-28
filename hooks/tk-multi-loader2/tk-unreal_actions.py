@@ -313,7 +313,10 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
         sys.path.append(win_dir)
 
     import unreal_rename
-    unreal_rename.test_function()
+    import save_all_assets
+
+    save_all_assets.save_all_unsaved_assets()
+    unreal_rename.list_and_reorganize_assets()
 
     return first_imported_object
 
