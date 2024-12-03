@@ -1,14 +1,16 @@
 import unreal
-import yaml
 from collections import defaultdict
 
-# def test_function():
-#     print("R"*30)
-#     print("rename 스크립트 실행 시점 확인")
-#     print("R"*30)
+try:
+    import yaml
+    print("PyYAML 모듈이 정상적으로 로드되었습니다!")
+except ImportError as e:
+    print(f"Error: {e}")
 
 
 def open_unreal_templates():
+    print("X"*20)
+
     template_yaml = "../../env/includes/unreal/templates.yml"
 
     # YAML 파일 읽기
