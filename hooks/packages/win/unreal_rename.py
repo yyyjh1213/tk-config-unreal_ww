@@ -1,15 +1,18 @@
 import unreal
 import sgtk
 from collections import defaultdict
+import configparser
 
 
+def get_template_ini(template_ini):
+    print("X"*20)
 
-print("X"*20)
-# template_yaml = "../../env/includes/unreal/templates.yml"
+    for section in template_ini.sections():
+        print(f"[{section}]")  # 섹션명 출력
+        for key, value in template_ini.items(section):
+            print(f"{key} = {value}")  # key, value 출력
 
-SM__path = sgtk.templates["unreal_loader_staticmesh_path"]
-print("X"*20)
-print(SM__path)
+    print("X"*20)
 
 
 
