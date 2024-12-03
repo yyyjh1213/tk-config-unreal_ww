@@ -359,7 +359,7 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     # unreal_actions_instance = UnrealActions() # self가 해당 인스턴스를 자동으로 참조하도록 인스턴스를 통해 호출
     # template_ini = unreal_actions_instance.make_template_ini()
 
-    unreal_actions = UnrealActions()
+    unreal_actions = UnrealActions(parent="SomeParentValue")
     template_ini = unreal_actions.make_template_ini() #### 클래스 내부의 함수 리턴 값 받아오는데 문제 있음
 
     save_all_assets.save_all_unsaved_assets()
