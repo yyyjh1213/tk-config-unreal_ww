@@ -3,13 +3,13 @@ import sgtk
 from collections import defaultdict
 
 
-def open_unreal_templates():
-    print("X"*20)
-    # template_yaml = "../../env/includes/unreal/templates.yml"
 
-    SM__path = self.sgtk.templates["unreal_loader_staticmesh_path"]
-    print("X"*20)
-    print(SM__path)
+print("X"*20)
+# template_yaml = "../../env/includes/unreal/templates.yml"
+
+SM__path = sgtk.templates["unreal_loader_staticmesh_path"]
+print("X"*20)
+print(SM__path)
 
 
 
