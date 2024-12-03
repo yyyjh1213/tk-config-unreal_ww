@@ -1,23 +1,18 @@
 import unreal
+import sgtk
 from collections import defaultdict
-
-try:
-    import yaml
-    print("PyYAML 모듈이 정상적으로 로드되었습니다!")
-except ImportError as e:
-    print(f"Error: {e}")
 
 
 def open_unreal_templates():
     print("X"*20)
+    # template_yaml = "../../env/includes/unreal/templates.yml"
 
-    template_yaml = "../../env/includes/unreal/templates.yml"
+    SM__path = self.sgtk.templates["unreal_loader_staticmesh_path"]
+    print("X"*20)
+    print(SM__path)
 
-    # YAML 파일 읽기
-    with open(template_yaml, 'r') as file:
-        yaml_data = yaml.safe_load(file)
 
-    print(yaml_data)
+
 
 def get_new_name_and_path(class_name, original_path):
     """
