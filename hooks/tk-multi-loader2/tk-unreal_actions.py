@@ -268,33 +268,33 @@ class UnrealActions(HookBaseClass):
 
 
 
-    def make_template_ini(self): # sgtk 템플릿의 경로, 이름을 전달하기 위해 ini로 만듭니다.
-        template_ini = configparser.ConfigParser()
+def make_template_ini(sgtk): # sgtk 템플릿의 경로, 이름을 전달하기 위해 ini로 만듭니다.
+    template_ini = configparser.ConfigParser()
 
-        template_ini["None"] = {"path" : self.sgtk.templates["unreal_loader_project_path"],
-                                     "name" : self.sgtk.templates["unreal_loader_project_name"]}
+    template_ini["None"] = {"path" : sgtk.templates["unreal_loader_project_path"],
+                                    "name" : sgtk.templates["unreal_loader_project_name"]}
 
-        template_ini["StaticMesh"] = {"path" : self.sgtk.templates["unreal_loader_staticmesh_path"],
-                                           "name" : self.sgtk.templates["unreal_loader_staticmesh_name"]}
-        template_ini["SkeletalMesh"] = {"path" : self.sgtk.templates["unreal_loader_skeletalmesh_path"],
-                                             "name" : self.sgtk.templates["unreal_loader_skeletalmesh_name"]}
-        template_ini["PhysicsAsset"] = {"path" : self.sgtk.templates["unreal_loader_physicsasset_path"],
-                                             "name" : self.sgtk.templates["unreal_loader_physicsasset_name"]}
-        template_ini["Material"] = {"path" : self.sgtk.templates["unreal_loader_material_path"],
-                                         "name" : self.sgtk.templates["unreal_loader_material_name"]}
-        template_ini["Texture2D"] = {"path" : self.sgtk.templates["unreal_loader_texture_path"],
-                                          "name" : self.sgtk.templates["unreal_loader_texture_name"]}
-        template_ini["NiagaraSystem"] = {"path" : self.sgtk.templates["unreal_loader_fx_path"],
-                                              "name" : self.sgtk.templates["unreal_loader_fx_name"]}
-        template_ini["GroomAsset"] = {"path" : self.sgtk.templates["unreal_loader_groom_path"],
-                                           "name" : self.sgtk.templates["unreal_loader_groom_name"]}
+    template_ini["StaticMesh"] = {"path" : sgtk.templates["unreal_loader_staticmesh_path"],
+                                        "name" : sgtk.templates["unreal_loader_staticmesh_name"]}
+    template_ini["SkeletalMesh"] = {"path" : sgtk.templates["unreal_loader_skeletalmesh_path"],
+                                            "name" : sgtk.templates["unreal_loader_skeletalmesh_name"]}
+    template_ini["PhysicsAsset"] = {"path" : sgtk.templates["unreal_loader_physicsasset_path"],
+                                            "name" : sgtk.templates["unreal_loader_physicsasset_name"]}
+    template_ini["Material"] = {"path" : sgtk.templates["unreal_loader_material_path"],
+                                        "name" : sgtk.templates["unreal_loader_material_name"]}
+    template_ini["Texture2D"] = {"path" : sgtk.templates["unreal_loader_texture_path"],
+                                        "name" : sgtk.templates["unreal_loader_texture_name"]}
+    template_ini["NiagaraSystem"] = {"path" : sgtk.templates["unreal_loader_fx_path"],
+                                            "name" : sgtk.templates["unreal_loader_fx_name"]}
+    template_ini["GroomAsset"] = {"path" : sgtk.templates["unreal_loader_groom_path"],
+                                        "name" : sgtk.templates["unreal_loader_groom_name"]}
 
-        template_ini["AnimSequence"] = {"path" : self.sgtk.templates["unreal_loader_animation_sq_path"],
-                                             "name" : self.sgtk.templates["unreal_loader_animation_sq_name"]}
-        template_ini["TakeRecorder"] = {"path" : self.sgtk.templates["unreal_loader_performancecapture_path"],
-                                             "name" : self.sgtk.templates["unreal_loader_performancecapture_name"]}
+    template_ini["AnimSequence"] = {"path" : sgtk.templates["unreal_loader_animation_sq_path"],
+                                            "name" : sgtk.templates["unreal_loader_animation_sq_name"]}
+    template_ini["TakeRecorder"] = {"path" : sgtk.templates["unreal_loader_performancecapture_path"],
+                                            "name" : sgtk.templates["unreal_loader_performancecapture_name"]}
 
-        return template_ini
+    return template_ini
 
 
 
@@ -350,8 +350,11 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     import unreal_rename
     import save_all_assets
 
-    unreal_actions_instance = UnrealActions() # self가 해당 인스턴스를 자동으로 참조하도록 인스턴스를 통해 호출
-    template_ini = unreal_actions_instance.make_template_ini()
+    # unreal_actions_instance = UnrealActions() # self가 해당 인스턴스를 자동으로 참조하도록 인스턴스를 통해 호출
+    # template_ini = unreal_actions_instance.make_template_ini()
+    current_context = sgtk.platform.current_bundle().context
+    current_sgtk = current_context.sgtk
+    template_ini = make_template_ini(current_sgtk)
 
     save_all_assets.save_all_unsaved_assets()
     unreal_rename.list_and_reorganize_assets()
