@@ -350,7 +350,8 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     import unreal_rename
     import save_all_assets
 
-    template_ini = UnrealActions.make_template_ini()
+    unreal_actions_instance = UnrealActions() # self가 해당 인스턴스를 자동으로 참조하도록 인스턴스를 통해 호출
+    template_ini = unreal_actions_instance.make_template_ini()
 
     save_all_assets.save_all_unsaved_assets()
     unreal_rename.list_and_reorganize_assets()

@@ -16,7 +16,6 @@ def get_template_ini(template_ini):
 
 
 
-
 def get_new_name_and_path(class_name, original_path):
     """
     클래스별 이름 규칙과 경로 규칙을 정의합니다.
