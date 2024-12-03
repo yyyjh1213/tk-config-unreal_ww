@@ -1,6 +1,6 @@
-# tk-unreal_actions.py에서 import가 완료된 후에 실행되는 스크립트
-# 정말로 마지막에 실행되는지 테스트하는 중
-
+import unreal
+import yaml
+from collections import defaultdict
 
 # def test_function():
 #     print("R"*30)
@@ -8,8 +8,14 @@
 #     print("R"*30)
 
 
-import unreal
-from collections import defaultdict
+def open_unreal_templates():
+    template_yaml = "../../env/includes/unreal/templates.yml"
+
+    # YAML 파일 읽기
+    with open(template_yaml, 'r') as file:
+        yaml_data = yaml.safe_load(file)
+
+    print(yaml_data)
 
 def get_new_name_and_path(class_name, original_path):
     """
@@ -159,5 +165,8 @@ def sanitize_asset_path(path):
 
 # 스크립트 실행
 if __name__ == "__main__":
+
+    open_unreal_templates()
+
     with unreal.ScopedEditorTransaction("Reorganize Assets by Class") as transaction:
         list_and_reorganize_assets()
