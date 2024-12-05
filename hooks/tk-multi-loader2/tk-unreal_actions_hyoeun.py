@@ -260,12 +260,12 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
                 first_imported_object = object_path
 
 
-    # packages/win 디렉토리 경로 설정
-    win_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages/win"))
+    # # packages/win 디렉토리 경로 설정
+    # win_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages/win"))
 
-    # sys.path에 경로 추가
-    if win_dir not in sys.path:
-        sys.path.append(win_dir)
+    # # sys.path에 경로 추가
+    # if win_dir not in sys.path:
+    #     sys.path.append(win_dir)
 
     import unreal_rename
     import save_all_assets
@@ -304,30 +304,28 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
 
     print("*"*10, "_generate_fbx_import_task 함수 실행")
 
-    # AssetImportTask 객체 생성
+    # Create AssetImportTask Object
     task = unreal.AssetImportTask()
     task.filename = filename
     task.destination_path = destination_path
 
-    # 에셋 이름 지정
     # By default, destination_name is the filename without the extension
     if destination_name is not None:
         task.destination_name = destination_name
 
-    # import 옵션 설정
+    # Set import options
     task.replace_existing = replace_existing
     task.automated = automated
     task.save = save
 
-    # fbx ImportUI 옵션 설정
+    # Set fbx ImportUI Options
     task.options = unreal.FbxImportUI()
     task.options.import_materials = materials
     task.options.import_textures = textures
     task.options.import_as_skeletal = as_skeletal
     # task.options.static_mesh_import_data.combine_meshes = True
-
-    # 애니메이션 import 설정 추가
     if import_animations:
+        print("")
         task.options.import_animations = True
         task.options.animation_length = unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME  # 또는 FBXALIT_ALL_FRAMES
         task.options.import_custom_attribute = True  # 커스텀 애니메이션 어트리뷰트 import
