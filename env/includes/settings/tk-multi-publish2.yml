@@ -599,7 +599,7 @@ settings.tk-multi-publish2:
     help_url: https://support.shotgunsoftware.com/entries/95440137
 
   maya:
-    collector: "{config}/hooks/tk-multi-publish2/maya_collector.py"
+    collector: "{config}/hooks/tk-multi-publish2/collector_maya.py"
     publish_plugins:
       - name: "Maya FBX 내보내기"
         hook: "{config}/hooks/tk-multi-publish2/publish_maya_fbx.py"
