@@ -154,20 +154,6 @@ class UnrealActions(HookBaseClass):
         # Enable if needed while in development
         self.sgtk.reload_templates()
 
-        # 일단 모든 에셋이 기본 경로를 사용하도록 지정
-        # destination_template = self.sgtk.templates["unreal_loader_project_path"]
-        # destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
-
-        # asset_type = self.sgtk.templates["ue_sg_asset_type"]
-        # asset_name = self.sgtk.templates["ue_sg_asset_name"]
-        # sequence_name = self.sgtk.templates["ue_sg_sequence_name"]
-        # shot_name = self.sgtk.templates["ue_sg_shot_name"]
-        # print("A"*100)
-        # print(f"asset_type : {asset_type}")
-        # print(f"asset_name : {asset_name}")
-        # print(f"sequence_name : {sequence_name}")
-        # print(f"shot_name : {shot_name}")
-
         # Get the publish context to determine the template to use
         context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
 
@@ -177,19 +163,21 @@ class UnrealActions(HookBaseClass):
         if context.entity is None:
             destination_template = self.sgtk.templates["unreal_loader_project_path"]
             destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
+
         elif context.entity["type"] == "Asset":
             destination_template = self.sgtk.templates["unreal_loader_asset_path"]
             destination_name_template = self.sgtk.templates["unreal_loader_asset_name"]
+
         elif context.entity["type"] == "Shot":
             destination_template = self.sgtk.templates["unreal_loader_shot_path"]
             destination_name_template = self.sgtk.templates["unreal_loader_shot_name"]
+
         else:
             destination_template = self.sgtk.templates["unreal_loader_project_path"]
             destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
 
 
         # 실제로 destination_path, name이 생성되는 부분은 여기서부터
-
         # Get the name field from the Publish Data
         name = sg_publish_data["name"]
         name = os.path.splitext(name)[0]
@@ -231,42 +219,6 @@ class UnrealActions(HookBaseClass):
         return destination_path, destination_name
 
 
-    # def make_template_ini(self): # sgtk 템플릿의 경로, 이름을 전달하기 위해 ini로 만듭니다.
-    #     template_ini = configparser.ConfigParser()
-
-    #     template_ini["None"] = {"path" : self.sgtk.templates["unreal_loader_project_path"],
-    #                                     "name" : self.sgtk.templates["unreal_loader_project_name"]}
-
-    #     template_ini["StaticMesh"] = {"path" : self.sgtk.templates["unreal_loader_staticmesh_path"],
-    #                                         "name" : self.sgtk.templates["unreal_loader_staticmesh_name"]}
-    #     template_ini["SkeletalMesh"] = {"path" : self.sgtk.templates["unreal_loader_skeletalmesh_path"],
-    #                                             "name" : self.sgtk.templates["unreal_loader_skeletalmesh_name"]}
-    #     template_ini["PhysicsAsset"] = {"path" : self.sgtk.templates["unreal_loader_physicsasset_path"],
-    #                                             "name" : self.sgtk.templates["unreal_loader_physicsasset_name"]}
-    #     template_ini["Material"] = {"path" : self.sgtk.templates["unreal_loader_material_path"],
-    #                                         "name" : self.sgtk.templates["unreal_loader_material_name"]}
-    #     template_ini["Texture2D"] = {"path" : self.sgtk.templates["unreal_loader_texture_path"],
-    #                                         "name" : self.sgtk.templates["unreal_loader_texture_name"]}
-    #     template_ini["NiagaraSystem"] = {"path" : self.sgtk.templates["unreal_loader_fx_path"],
-    #                                             "name" : self.sgtk.templates["unreal_loader_fx_name"]}
-    #     template_ini["GroomAsset"] = {"path" : self.sgtk.templates["unreal_loader_groom_path"],
-    #                                         "name" : self.sgtk.templates["unreal_loader_groom_name"]}
-
-    #     template_ini["AnimSequence"] = {"path" : self.sgtk.templates["unreal_loader_animation_sq_path"],
-    #                                             "name" : self.sgtk.templates["unreal_loader_animation_sq_name"]}
-    #     template_ini["TakeRecorder"] = {"path" : self.sgtk.templates["unreal_loader_performancecapture_path"],
-    #                                             "name" : self.sgtk.templates["unreal_loader_performancecapture_name"]}
-
-    #     print("A"*20)
-    #     for section in template_ini.sections():
-    #         print(f"[{section}]")
-    #         for key, value in template_ini.items(section):
-    #             print(f"{key} = {value}")
-
-    #     return template_ini
-
-
-
 """
 Functions to import FBX into Unreal
 """
@@ -281,7 +233,6 @@ def _sanitize_name(name): # 에셋 이름에서 버전 번호 제거
 
     # Replace any remaining '.' with '_' since they are not allowed in Unreal asset names
     return name_no_version.replace('.', '_')
-
 
 def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # fbx 어셋을 unreal로 가져옴. 첫번째로 가져온 객체의 경로
     """
@@ -331,7 +282,6 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
 
     return first_imported_object
 
-
 def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import_asset_tasks 메서드로 실행
     filename,
     destination_path,
@@ -341,7 +291,8 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     save=True,
     materials=True,
     textures=True,
-    as_skeletal=False
+    as_skeletal=False,
+    import_animations=False  # 애니메이션 import 옵션 추가
 ):
     """
     Create and configure an Unreal AssetImportTask
@@ -375,29 +326,20 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     task.options.import_as_skeletal = as_skeletal
     # task.options.static_mesh_import_data.combine_meshes = True
 
+    # 애니메이션 import 설정 추가
+    if import_animations:
+        task.options.import_animations = True
+        task.options.animation_length = unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME  # 또는 FBXALIT_ALL_FRAMES
+        task.options.import_custom_attribute = True  # 커스텀 애니메이션 어트리뷰트 import
+        
+        # 필요한 경우 추가 애니메이션 옵션 설정
+        # task.options.frames_per_second = 30.0  # FPS 설정
+        # task.options.import_bone_tracks = True  # 본 트랙 import
+        # task.options.preserve_local_transform = True  # 로컬 트랜스폼 유지
+
     # 메시 유형 설정
     task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_STATIC_MESH
     if as_skeletal:
         task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_SKELETAL_MESH
 
     return task
-
-
-# def _guess_asset_type_from_data(sg_publish_data):
-#     """
-#     파일명, description으로 찾기"""
-#     print("*"*10, "_guess_asset_type_from_data 함수 실행")
-
-#     name = sg_publish_data.get("code", "").lower()
-#     description = sg_publish_data.get("description", "").lower()
-    
-#     # Animation 관련 키워드 체크
-#     if any(keyword in name or keyword in description for keyword in ["anim", "ani", "sequence"]):
-#         return "AnimSequence"
-        
-#     # Skeletal Mesh 관련 키워드 체크
-#     if any(keyword in name or keyword in description for keyword in ["skel", "rig", "character"]):
-#         return "SkeletalMesh"
-        
-#     # 기본값으로 StaticMesh 반환
-#     return "StaticMesh"
