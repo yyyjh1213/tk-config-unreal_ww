@@ -67,7 +67,7 @@ strings:
     unreal_loader_shot_path: "/Game/LevelSequence/{ue_sg_sequence_name}/{ue_sg_shot_name}/"
     unreal_loader_shot_name: "{ue_sg_sequence_name}_{ue_sg_shot_name}"
 
-    unreal_loader_project_path: "/Game/Assets/"
+    unreal_loader_project_path: "/Game/Assets/Others" # unreal_loader_asset_path과 같으면 안됨
     unreal_loader_project_name: "A.{ue_sg_asset_name}" # unreal_loader_asset_name과 같으면 안됨
 
 
