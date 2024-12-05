@@ -1,11 +1,15 @@
 """
-Maya 파일을 Unreal Engine용 FBX로 내보내기 위한 훅입니다.
-FBX 내보내기 설정과 Unreal 호환성을 위한 텍스처 변환을 처리합니다.
+Maya 파일을 Unreal Engine용 FBX로 내보내기 위한 기본 훅입니다.
+이 훅은 FBX 내보내기의 핵심 기능을 제공하며, 다른 퍼블리시 훅의 기반이 됩니다.
 
 주요 기능:
 1. Maya 씬을 Unreal Engine에 최적화된 FBX 형식으로 내보내기
 2. 텍스처 자동 변환 및 최적화
 3. FBX 내보내기 설정 관리 (버전, 스케일, 선택 객체 등)
+
+수정 이력:
+- 2024.01: 코드 구조 개선 및 주석 추가
+- 기본 FBX 내보내기 기능을 별도 클래스로 분리하여 재사용성 향상
 """
 import os
 import maya.cmds as cmds
@@ -16,8 +20,8 @@ HookBaseClass = sgtk.get_hook_baseclass()
 
 class MayaFBXUnrealExportPlugin(HookBaseClass):
     """
-    Unreal Engine에 최적화된 Maya FBX 파일 내보내기를 위한 플러그인입니다.
-    FBX 내보내기 설정과 텍스처 변환을 담당합니다.
+    Unreal Engine에 최적화된 Maya FBX 파일 내보내기를 위한 기본 플러그인입니다.
+    이 클래스는 FBX 내보내기의 핵심 기능을 제공하며, 다른 퍼블리시 플러그인에서 상속하여 사용할 수 있습니다.
     
     주요 설정:
     - Export Selection: 선택된 객체만 내보내기
@@ -39,8 +43,8 @@ class MayaFBXUnrealExportPlugin(HookBaseClass):
     @property
     def settings(self):
         """
-        플러그인의 설정을 정의합니다.
-        각 설정은 사용자가 퍼블리시 시 조정할 수 있는 옵션들입니다.
+        FBX 내보내기에 필요한 기본 설정을 정의합니다.
+        이 설정들은 상속받는 클래스에서 확장하여 사용할 수 있습니다.
         """
         return {
             "Export Selection": {
@@ -50,18 +54,23 @@ class MayaFBXUnrealExportPlugin(HookBaseClass):
             },
             "FBX Version": {
                 "type": "str",
-                "default": "FBX201900",
-                "description": "FBX file version to use.",
+                "default": "FBX202000",
+                "description": "FBX file version to export.",
             },
             "Convert Textures": {
                 "type": "bool",
                 "default": True,
-                "description": "Convert procedural textures to file textures before export.",
+                "description": "Convert procedural textures to file textures.",
             },
             "Scale Factor": {
                 "type": "float",
                 "default": 1.0,
-                "description": "Scale factor for the exported FBX.",
+                "description": "Scale factor to apply during export.",
+            },
+            "Up Axis": {
+                "type": "str",
+                "default": "z",
+                "description": "Up axis for the exported FBX file (y or z).",
             }
         }
 
@@ -104,8 +113,8 @@ class MayaFBXUnrealExportPlugin(HookBaseClass):
             mel.eval('FBXResetExport')
             
             # Set FBX export settings
-            mel.eval('FBXExportFileVersion -v "{}"'.format(settings.get("FBX Version", "FBX201900")))
-            mel.eval('FBXExportUpAxis -v "y"')
+            mel.eval('FBXExportFileVersion -v "{}"'.format(settings.get("FBX Version", "FBX202000")))
+            mel.eval('FBXExportUpAxis -v "{}"'.format(settings.get("Up Axis", "z")))
             mel.eval('FBXExportScaleFactor -v {}'.format(settings.get("Scale Factor", 1.0)))
             mel.eval('FBXExportShapes -v true')
             mel.eval('FBXExportSmoothingGroups -v true')

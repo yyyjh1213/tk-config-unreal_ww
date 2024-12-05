@@ -8,12 +8,45 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 #
-
 ################################################################################
 # A single, top-level setting is defined: "@frameworks". This setting can
 # be included and referenced wherever shared frameworks are required.
 
 frameworks:
+  # ShotGrid Pipeline Toolkit 기본 프레임워크
+  tk-framework-shotgunutils_v5.x.x:
+    location:
+      version: v5.8.6
+      type: app_store
+      name: tk-framework-shotgunutils
+
+  tk-framework-qtwidgets_v2.x.x:
+    location:
+      version: v2.9.4
+      type: app_store
+      name: tk-framework-qtwidgets
+
+  # Maya 관련 프레임워크
+  tk-framework-maya_v1.x.x:
+    location:
+      version: v1.2.0
+      type: app_store
+      name: tk-framework-maya
+
+  # Unreal Engine 관련 프레임워크
+  tk-framework-unreal_v1.x.x:
+    location:
+      version: v1.0.0
+      type: app_store
+      name: tk-framework-unreal
+
+  # 공통 유틸리티 프레임워크
+  tk-framework-utils_v1.x.x:
+    location:
+      version: v1.0.0
+      type: app_store
+      name: tk-framework-utils
+
   # adobe - Common functionality for adobe products
   tk-framework-adobe_v1.x.x:
     location:
@@ -40,31 +73,6 @@ frameworks:
       version: v1.7.1
       type: app_store
       name: tk-framework-desktopserver
-  tk-framework-qtwidgets_v2.x.x:
-    location:
-      version: v2.12.3
-      type: app_store
-      name: tk-framework-qtwidgets
-  tk-framework-shotgunutils_v4.x.x:
-    location:
-      version: v4.4.15
-      type: app_store
-      name: tk-framework-shotgunutils
-  tk-framework-shotgunutils_v5.x.x:
-    location:
-      version: v5.10.0
-      type: app_store
-      name: tk-framework-shotgunutils
-  tk-framework-widget_v0.2.x:
-    location:
-      version: v0.2.8
-      type: app_store
-      name: tk-framework-widget
-  tk-framework-widget_v1.x.x:
-    location:
-      version: v1.2.0
-      type: app_store
-      name: tk-framework-widget
   tk-framework-desktopclient_v0.x.x:
     location:
       version: v0.3.3
@@ -80,5 +88,15 @@ frameworks:
       version: v1.1.0
       type: app_store
       name: tk-framework-lmv
+  tk-framework-widget_v0.2.x:
+    location:
+      version: v0.2.8
+      type: app_store
+      name: tk-framework-widget
+  tk-framework-widget_v1.x.x:
+    location:
+      version: v1.2.0
+      type: app_store
+      name: tk-framework-widget
 
 include: unreal/frameworks.yml

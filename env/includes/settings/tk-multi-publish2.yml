@@ -161,7 +161,7 @@ settings.tk-multi-publish2.mari.asset_step:
 
 # asset step
 settings.tk-multi-publish2.maya.asset_step:
-  collector: "{self}/collector.py:{config}/hooks/tk-multi-publish2/collector_maya.py"
+  collector: "{config}/hooks/tk-multi-publish2/collector_maya.py"
   publish_plugins:
   - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py"
@@ -176,12 +176,21 @@ settings.tk-multi-publish2.maya.asset_step:
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
         Publish Template: maya_asset_publish
+  - name: Maya FBX Export for Unreal
+    hook: "{config}/hooks/tk-multi-publish2/publish_maya_fbx.py"
+    settings:
+      Publish Template: maya.asset.fbx
+      Export Selection: true
+      FBX Version: "FBX202000"
+      Convert Textures: true
+      Scale Factor: 1.0
+      Up Axis: "z"
   help_url: *help_url
   location: "@apps.tk-multi-publish2.location"
 
 # shot step
 settings.tk-multi-publish2.maya.shot_step:
-  collector: "{self}/collector.py:{config}/hooks/tk-multi-publish2/collector_maya.py"
+  collector: "{config}/hooks/tk-multi-publish2/collector_maya.py"
   publish_plugins:
   - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py"
@@ -580,3 +589,53 @@ settings.tk-multi-publish2.vred.asset_step:
   post_phase: "{self}/post_phase.py:{config}/tk-multi-publish2/post_phase.py"
   help_url: *help_url
   location: "@apps.tk-multi-publish2.location"
+
+################################################################################
+
+settings.tk-multi-publish2:
+  base:
+    collector: "{config}/hooks/tk-multi-publish2/collector.py"
+    publish_plugins: []
+    help_url: https://support.shotgunsoftware.com/entries/95440137
+
+  maya:
+    collector: "{config}/hooks/tk-multi-publish2/maya_collector.py"
+    publish_plugins:
+      - name: "Maya FBX 내보내기"
+        hook: "{config}/hooks/tk-multi-publish2/publish_maya_fbx.py"
+        settings:
+          Template: "maya.asset.fbx"
+          Export Types:
+            Meshes: true
+            Skeletons: true
+            Animations: true
+          FBX Options:
+            Version: "FBX202000"
+            Up Axis: "Z"
+            Scale Factor: 1.0
+            Convert Units: true
+            Convert Textures: true
+            Convert NURBS: true
+
+  unreal:
+    collector: "{config}/hooks/tk-multi-publish2/unreal_collector.py"
+    publish_plugins:
+      - name: "Unreal Asset 내보내기"
+        hook: "{config}/hooks/tk-multi-publish2/publish_unreal_asset.py"
+        settings:
+          Template: "unreal.asset.fbx"
+          Asset Types:
+            - StaticMesh
+            - SkeletalMesh
+            - Animation
+          Import Options:
+            Auto Generate Collision: true
+            Import Materials: true
+            Import Textures: true
+            Import Animations: true
+
+  common:
+    hook_annotations:
+      collector: "{config}/hooks/tk-multi-publish2/collector.py"
+      publish_file: "{config}/hooks/tk-multi-publish2/publish_file.py"
+      upload_version: "{config}/hooks/tk-multi-publish2/upload_version.py"

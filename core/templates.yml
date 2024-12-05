@@ -355,20 +355,25 @@ paths:
     
     # define the location of a work area
     shot_work_area_maya:
-        definition: '@shot_root/dev/maya'
+        definition: '@shot_root/work/maya'
     # define the location of a publish area
     shot_publish_area_maya:
         definition: '@shot_root/pub/maya'
     # The location of WIP files
     maya_shot_work:
-        definition: '@shot_root/dev/maya/{name}.v{version}.{maya_extension}'
+        definition: '@shot_root/work/maya/{name}.v{version}.{maya_extension}'
         root_name: primary
     # The location of backups of WIP files
     maya_shot_snapshot:
-        definition: '@shot_root/dev/maya/snapshots/{name}.v{version}[_{name}].{timestamp}.{extension}'
+        definition: '@shot_root/work/maya/snapshots/{name}.v{version}[_{name}].{timestamp}.{extension}'
     # The location of published maya files
     maya_shot_publish:
         definition: '@shot_root/pub/maya/{extension}/{name}.v{version}.{extension}'
+        root_name: primary
+
+    # Maya FBX 내보내기
+    maya.shot.fbx:
+        definition: '@shot_root/pub/fbx/{name}.v{version}.fbx'
         root_name: primary
 
     #
@@ -556,12 +561,12 @@ paths:
 
     # The location of WIP files
     photoshop_asset_work:
-        definition: '@asset_root/dev/photoshop/{name}.v{version}[_{name}].psd'
+        definition: '@asset_root/work/photoshop/{name}.v{version}[_{name}].psd'
     asset_work_area_photoshop:
-        definition: '@asset_root/dev/photoshop'
+        definition: '@asset_root/work/photoshop'
     # The location of backups of WIP files
     photoshop_asset_snapshot:
-        definition: '@asset_root/dev/photoshop/snapshots/{name}.v{version}[_{name}].{timestamp}.psd'
+        definition: '@asset_root/work/photoshop/snapshots/{name}.v{version}[_{name}].{timestamp}.psd'
     # The location of published files
     asset_publish_area_photoshop:
         definition: '@asset_root/pub/photoshop'
@@ -579,12 +584,12 @@ paths:
 
     # The location of WIP files
     aftereffects_asset_work:
-        definition: '@asset_root/dev/afx/{name}.v{version}.aep'
+        definition: '@asset_root/work/afx/{name}.v{version}.aep'
     asset_work_area_aftereffects:
-        definition: '@asset_root/dev/afx'
+        definition: '@asset_root/work/afx'
     # The location of backups of WIP files
     aftereffects_asset_snapshot:
-        definition: '@asset_root/dev/afx/snapshots/{name}.v{version}.{timestamp}.aep'
+        definition: '@asset_root/work/afx/snapshots/{name}.v{version}.{timestamp}.aep'
     # The location of published files
     asset_publish_area_aftereffects:
         definition: '@asset_root/pub/afx'
@@ -610,20 +615,25 @@ paths:
 
     # define the location of a work area
     asset_work_area_maya:
-        definition: '@asset_root/dev/maya'
+        definition: '@asset_root/work/maya'
     # define the location of a publish area
     asset_publish_area_maya:
         definition: '@asset_root/pub/maya'
     # The location of WIP files
     maya_asset_work:
-        definition: '@asset_root/dev/maya/{name}.{Step}.v{version}.{maya_extension}'
+        definition: '@asset_root/work/maya/{name}.{Step}.v{version}.{maya_extension}'
         root_name: primary
     # The location of backups of WIP files
     maya_asset_snapshot:
-        definition: '@asset_root/dev/maya/snapshots/{name}.v{version}[_{name}].{timestamp}.{extension}'
+        definition: '@asset_root/work/maya/snapshots/{name}.v{version}[_{name}].{timestamp}.{extension}'
     # The location of published maya files
     maya_asset_publish:
         definition: '@asset_root/pub/maya/{extension}/{name}.{Step}.v{version}.{extension}'
+        root_name: primary
+
+    # Maya FBX 내보내기
+    maya.asset.fbx:
+        definition: '@asset_root/pub/fbx/{name}.v{version}.fbx'
         root_name: primary
 
     #
@@ -632,36 +642,36 @@ paths:
 
     # define the location of a work area
     asset_work_area_houdini:
-        definition: '@asset_root/dev/houdini'
+        definition: '@asset_root/work/houdini'
     # define the location of a publish area
     asset_publish_area_houdini:
         definition: '@asset_root/pub/houdini'
     # The location of WIP files
     houdini_asset_work:
-        definition: '@asset_root/dev/houdini/{name}.v{version}[_{name}].hip'
+        definition: '@asset_root/work/houdini/{name}.v{version}[_{name}].hip'
     # The location of backups of WIP files
     houdini_asset_snapshot:
-        definition: '@asset_root/dev/houdini/snapshots/{name}.v{version}[_{name}].{timestamp}.hip'
+        definition: '@asset_root/work/houdini/snapshots/{name}.v{version}[_{name}].{timestamp}.hip'
     # The location of published houdini files
     houdini_asset_publish:
         definition: '@asset_root/pub/houdini/{name}.v{version}[_{name}].hip'
     # Alembic caches
     houdini_asset_work_alembic_cache:
-        definition: '@asset_root/dev/houdini/cache/alembic/{name}/{houdini.node}/v{version}/{Asset}_{name}_v{version}.abc'
+        definition: '@asset_root/work/houdini/cache/alembic/{name}/{houdini.node}/v{version}/{Asset}_{name}_v{version}.abc'
 
     # Rendered images
     houdini_asset_render:
-        definition: '@asset_root/dev/images/{name}/{houdini.node}/v{version}/{width}x{height}/{Asset}_{name}_v{version}.{SEQ}.exr'
+        definition: '@asset_root/work/images/{name}/{houdini.node}/v{version}/{width}x{height}/{Asset}_{name}_v{version}.{SEQ}.exr'
 
     # Additional mantra outputs
     houdini_asset_ifd:
-        definition: '@asset_root/dev/ifds/{name}/{houdini.node}/v{version}/{width}x{height}/{Asset}_{name}_v{version}.{SEQ}.ifd'
+        definition: '@asset_root/work/ifds/{name}/{houdini.node}/v{version}/{width}x{height}/{Asset}_{name}_v{version}.{SEQ}.ifd'
 
     houdini_asset_dcm:
-        definition: '@asset_root/dev/dcms/{name}/{houdini.node}/v{version}/{width}x{height}/{Asset}_{name}_v{version}.{SEQ}.dcm'
+        definition: '@asset_root/work/dcms/{name}/{houdini.node}/v{version}/{width}x{height}/{Asset}_{name}_v{version}.{SEQ}.dcm'
 
     houdini_asset_extra_plane:
-        definition: '@asset_root/dev/images/{name}/{houdini.node}/{aov_name}/v{version}/{width}x{height}/{Asset}_{name}_v{version}.{SEQ}.exr'
+        definition: '@asset_root/work/images/{name}/{houdini.node}/{aov_name}/v{version}/{width}x{height}/{Asset}_{name}_v{version}.{SEQ}.exr'
 
 
     #
@@ -670,16 +680,16 @@ paths:
 
     # define the location of a work area
     asset_work_area_max:
-        definition: '@asset_root/dev/3dsmax'
+        definition: '@asset_root/work/3dsmax'
     # define the location of a publish area
     asset_publish_area_max:
         definition: '@asset_root/pub/3dsmax'
     # The location of WIP files
     max_asset_work:
-        definition: '@asset_root/dev/3dsmax/{name}.v{version}.max'
+        definition: '@asset_root/work/3dsmax/{name}.v{version}.max'
     # The location of backups of WIP files
     max_asset_snapshot:
-        definition: '@asset_root/dev/3dsmax/snapshots/{name}.v{version}.{timestamp}.max'
+        definition: '@asset_root/work/3dsmax/snapshots/{name}.v{version}.{timestamp}.max'
     # The location of published max files
     max_asset_publish:
         definition: '@asset_root/pub/3dsmax/{name}.v{version}.max'
@@ -691,16 +701,16 @@ paths:
 
     # define the location of a work area
     asset_work_area_mobu:
-        definition: '@asset_root/dev/mobu'
+        definition: '@asset_root/work/mobu'
     # define the location of a publish area
     asset_publish_area_mobu:
         definition: '@asset_root/pub/mobu'
     # The location of WIP files
     mobu_asset_work:
-        definition: '@asset_root/dev/mobu/{name}.v{version}.fbx'
+        definition: '@asset_root/work/mobu/{name}.v{version}.fbx'
     # The location of backups of WIP files
     mobu_asset_snapshot:
-        definition: '@asset_root/dev/mobu/snapshots/{name}.v{version}.{timestamp}.fbx'
+        definition: '@asset_root/work/mobu/snapshots/{name}.v{version}.{timestamp}.fbx'
     # The location of published Motionbuilder files
     mobu_asset_publish:
         definition: '@asset_root/pub/mobu/{name}.v{version}.fbx'
@@ -712,13 +722,13 @@ paths:
 
     # define the location of a work area
     asset_work_area_nuke:
-        definition: '@asset_root/dev/nuke'
+        definition: '@asset_root/work/nuke'
     # define the location of a publish area
     asset_publish_area_nuke:
         definition: '@asset_root/pub'
     # outputs from the Shotgun Write Node for assets
     nuke_asset_render:
-        definition: '@asset_root/dev/images/{name}/v{version}/{width}x{height}/{Asset}_{name}_{nuke.output}_v{version}.{SEQ}.exr'
+        definition: '@asset_root/work/images/{name}/v{version}/{width}x{height}/{Asset}_{name}_{nuke.output}_v{version}.{SEQ}.exr'
     nuke_asset_render_pub:
         definition: '@asset_root/pub/elements/{name}/v{version}/{width}x{height}/{Asset}_{name}_{nuke.output}_v{version}.{SEQ}.exr'
     # review output
@@ -728,10 +738,10 @@ paths:
         definition: '@asset_root/review/quickdaily/{Asset}_{name}_{iteration}.mov'
     # The location of WIP script files
     nuke_asset_work:
-        definition: '@asset_root/dev/nuke/{name}.v{version}[_{name}].nk'
+        definition: '@asset_root/work/nuke/{name}.v{version}[_{name}].nk'
     # The location of backups of WIP files
     nuke_asset_snapshot:
-        definition: '@asset_root/dev/nuke/snapshots/{name}.v{version}[_{name}].{timestamp}.nk'
+        definition: '@asset_root/work/nuke/snapshots/{name}.v{version}[_{name}].{timestamp}.nk'
     # The location of published nuke script files
     nuke_asset_publish:
         definition: '@asset_root/pub/nuke/{name}.v{version}[_{name}].nk'
@@ -742,16 +752,16 @@ paths:
 
     # define the location of a work area
     asset_work_area_alias:
-        definition: '@asset_root/dev/alias'
+        definition: '@asset_root/work/alias'
     # define the location of a publish area
     asset_publish_area_alias:
         definition: '@asset_root/pub/alias'
     # The location of WIP files
     alias_asset_work:
-        definition: '@asset_root/dev/alias/{name}.v{version}.wire'
+        definition: '@asset_root/work/alias/{name}.v{version}.wire'
     # The location of backups of WIP files
     alias_asset_snapshot:
-        definition: '@asset_root/dev/alias/snapshots/{name}.v{version}.{timestamp}.wire'
+        definition: '@asset_root/work/alias/snapshots/{name}.v{version}.{timestamp}.wire'
     # The location of published Alias files
     alias_asset_publish:
         definition: '@asset_root/pub/alias/{name}.v{version}.wire'
@@ -778,27 +788,27 @@ paths:
 
     # define the location of a work area
     asset_work_area_vred:
-        definition: '@asset_root/dev/vred'
+        definition: '@asset_root/work/vred'
     # define the location of a pub area
     asset_publish_area_vred:
         definition: '@asset_root/pub/vred'
     # The location of WIP files
     vred_asset_work:
-        definition: '@asset_root/dev/vred/{name}.v{version}.vpb'
+        definition: '@asset_root/work/vred/{name}.v{version}.vpb'
     # The location of backups of WIP files
     vred_asset_snapshot:
-        definition: '@asset_root/dev/vred/snapshots/{name}.v{version}.{timestamp}.vpb'
+        definition: '@asset_root/work/vred/snapshots/{name}.v{version}.{timestamp}.vpb'
     # The location of published VRED files
     vred_asset_publish:
         definition: '@asset_root/pub/vred/{name}.v{version}.vpb'
 
     # define the location of the WIP render images
     vred_asset_render_work:
-        definition: '@asset_root/dev/images/{name}/v{version}/{Asset}_{name}_v{version}[-{vred.render_pass}].{vred.render_extension}'
+        definition: '@asset_root/work/images/{name}/v{version}/{Asset}_{name}_v{version}[-{vred.render_pass}].{vred.render_extension}'
 
     # define the location of the WIP renderings for an image sequence
     vred_asset_render_sequence_work:
-        definition: '@asset_root/dev/images/{name}/v{version}/{Asset}_{name}_v{version}[-{vred.render_pass}]-{vred.frame}.{vred.render_extension}'
+        definition: '@asset_root/work/images/{name}/v{version}/{Asset}_{name}_v{version}[-{vred.render_pass}]-{vred.frame}.{vred.render_extension}'
 
     # define the location of the published render images
     vred_asset_render_publish:
@@ -808,6 +818,41 @@ paths:
     vred_asset_render_sequence_publish:
         definition: '@asset_root/pub/images/{name}/v{version}/{Asset}_{name}_v{version}[-{vred.render_pass}]-{vred.frame}.{vred.render_extension}'
 
+    #
+    # Unreal Engine
+    #
+
+    # define the location of a work area
+    asset_work_area_unreal:
+        definition: '@asset_root/work/unreal'
+    # define the location of a publish area
+    asset_publish_area_unreal:
+        definition: '@asset_root/pub/unreal'
+    # The location of WIP files
+    unreal_asset_work:
+        definition: '@asset_root/work/unreal/{name}.v{version}.uasset'
+    # The location of backups of WIP files
+    unreal_asset_snapshot:
+        definition: '@asset_root/work/unreal/snapshots/{name}.v{version}.{timestamp}.uasset'
+    # The location of published Unreal Engine files
+    unreal_asset_publish:
+        definition: '@asset_root/pub/unreal/{name}.v{version}.uasset'
+
+    # Unreal Engine 로더 템플릿
+    unreal_loader_project_path:
+        definition: '/Game/Project/{name}'
+    unreal_loader_project_name:
+        definition: '{name}'
+
+    unreal_loader_asset_path:
+        definition: '/Game/Assets/{asset_type}/{asset_name}'
+    unreal_loader_asset_name:
+        definition: '{asset_name}'
+
+    unreal_loader_shot_path:
+        definition: '/Game/Shots/{sequence_name}/{shot_name}'
+    unreal_loader_shot_name:
+        definition: '{shot_name}'
 
 #
 # The strings section is similar to the paths section - but rather than defining paths
@@ -831,3 +876,27 @@ strings:
 
     # define how new Mari projects should be named
     mari_asset_project_name: "{mari.project_name} - Asset {asset_name}, {task_name}"
+
+    maya_extension:
+        type: str
+        values:
+            - ma
+            - mb
+    asset_type:
+        type: str
+        values:
+            - Character
+            - Prop
+            - Environment
+            - Vehicle
+            - Weapon
+    sequence_name:
+        type: str
+    shot_name:
+        type: str
+    asset_name:
+        type: str
+    name:
+        type: str
+    version:
+        type: int

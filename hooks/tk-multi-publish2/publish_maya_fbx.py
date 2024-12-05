@@ -5,21 +5,27 @@ Maya FBX 파일을 Unreal Engine으로 퍼블리시하기 위한 훅입니다.
 1. Maya 씬을 FBX 형식으로 내보내기
 2. Shotgrid에 에셋 정보 등록
 3. Unreal Engine에서 사용할 수 있도록 최적화된 형태로 저장
+
+수정 이력:
+- 2024.01: 코드 구조 개선 및 주석 추가
+- MayaFBXUnrealExportPlugin을 상속받아 퍼블리시 기능 특화
 """
 import os
 import sgtk
 from . import maya_fbx_unreal_export
 
-HookBaseClass = sgtk.get_hook_baseclass()
+# 기본 hook 클래스 대신 MayaFBXUnrealExportPlugin을 상속받아 사용
+HookBaseClass = maya_fbx_unreal_export.MayaFBXUnrealExportPlugin
 
 class MayaFBXPublishPlugin(HookBaseClass):
     """
     Maya FBX 파일을 Shotgrid와 Unreal Engine에 퍼블리시하기 위한 플러그인입니다.
+    MayaFBXUnrealExportPlugin의 FBX 내보내기 기능을 확장하여 Shotgrid 퍼블리시 기능을 추가합니다.
     
     주요 기능:
-    - Maya 씬을 Unreal Engine 호환 FBX로 내보내기
-    - Shotgrid에 에셋 등록 및 메타데이터 업데이트
-    - 퍼블리시 템플릿에 따른 파일 저장 경로 관리
+    - Maya 씬을 Unreal Engine 호환 FBX로 내보내기 (상속)
+    - Shotgrid에 에셋 등록 및 메타데이터 업데이트 (확장)
+    - 퍼블리시 템플릿에 따른 파일 저장 경로 관리 (확장)
     """
 
     @property
@@ -30,32 +36,29 @@ class MayaFBXPublishPlugin(HookBaseClass):
     @property
     def description(self):
         """플러그인의 설명을 반환합니다."""
-        return "Publish the Maya scene as an FBX file optimized for Unreal Engine."
+        return "Publish the Maya scene as an FBX file optimized for Unreal Engine and register it in ShotGrid."
 
     @property
     def settings(self):
         """
         플러그인의 설정을 정의합니다.
-        기본 설정과 FBX 내보내기 설정을 결합합니다.
-        
-        설정 항목:
-        - Publish Template: 퍼블리시된 파일의 템플릿 경로
-        - FBX 내보내기 관련 설정 (MayaFBXUnrealExportPlugin에서 상속)
+        부모 클래스의 FBX 내보내기 설정을 상속받고, 퍼블리시 관련 설정을 추가합니다.
         """
-        # Combine settings from both plugins
-        base_settings = {
+        # 부모 클래스(MayaFBXUnrealExportPlugin)의 설정을 가져옴
+        fbx_settings = super(MayaFBXPublishPlugin, self).settings
+
+        # 퍼블리시 관련 설정 추가
+        publish_settings = {
             "Publish Template": {
                 "type": "template",
                 "default": None,
                 "description": "Template path for published files. Should correspond to a template defined in templates.yml.",
             }
         }
-        
-        # Get export settings from the exporter
-        exporter = maya_fbx_unreal_export.MayaFBXUnrealExportPlugin(self.parent)
-        base_settings.update(exporter.settings)
-        
-        return base_settings
+
+        # 두 설정을 병합
+        fbx_settings.update(publish_settings)
+        return fbx_settings
 
     def accept(self, settings, item):
         """
