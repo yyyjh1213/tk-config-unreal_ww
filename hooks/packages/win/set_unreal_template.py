@@ -1,5 +1,6 @@
 import os
 import shutil
+import sgtk
 
 
 def get_ue_template():
@@ -10,20 +11,49 @@ def get_ue_template():
 def get_engine_dir():
     print("엔진과 템플릿 경로 찾기")
     # engine_dir = unreal.SystemLibrary.get_engine_directory()
-    launcher_config_path = os.path.expandvars("%PROGRAMDATA%/Epic/UnrealEngineLauncher/LauncherInstalled.dat")
-    
-    if os.path.exists(launcher_config_path):
-        with open(launcher_config_path, 'r') as f:
-            config = json.load(f)
-            for install in config.get('InstallationList', []):
-                if 'AppName' in install and install['AppName'].startswith('UE_'):
-                    print(f"설치 경로: {install.get('InstallLocation', '')}")
 
+    # 현재 엔진 인스턴스 가져오기
+    engine = sgtk.platform.current_engine()
+    
+    if engine:
+        # 엔진의 설치 경로 가져오기
+        engine_path = engine.disk_location
+        print(engine_path)
+
+
+
+
+    ##########################################################
     # print(f"Engine Directory : {engine_dir}")
 
     # template_dir = engine_dir + "/Template"
     # print(f"Engine Template Directory : {template_dir}")
     # return template_dir
+
+
+def get_app_info():
+    # 현재 컨텍스트 가져오기
+    current_context = sgtk.platform.current_bundle().context
+    
+    # 현재 엔진 가져오기
+    engine = sgtk.platform.current_engine()
+    
+    if engine:
+        print(f"현재 엔진: {engine.name}")
+        print(f"엔진 경로: {engine.disk_location}")
+        
+        # 모든 등록된 앱 정보 출력
+        print("\n등록된 앱들:")
+        for app_instance_name, app in engine.apps.items():
+            print(f"\n앱 인스턴스: {app_instance_name}")
+            print(f"앱 경로: {app.disk_location}")
+            print(f"앱 설정: {app.configuration}")
+            
+            # 앱의 환경 설정 가져오기
+            env = app.get_setting("env")
+            if env:
+                print(f"환경 설정: {env}")
+
 
 def move(src_dir, dst_dir):
     print("다운받은 템플릿을 엔진 템플릿 위치로 이동시킵니다.")
@@ -47,3 +77,4 @@ def run():
     src_directory = get_ue_template()
     dst_directory = get_engine_dir()
     move(src_directory, dst_directory)
+    get_app_info()
