@@ -19,7 +19,6 @@ HookBaseClass = sgtk.get_hook_baseclass()
 class UnrealActions(HookBaseClass):
 
     # public interface - to be overridden by deriving classes
-    # 이 클래스가 확장 가능하고 커스텀할 수 있는 기본 구현임
 
     def generate_actions(self, sg_publish_data, actions, ui_area): # 특정 publish에 대한 action 리스트 생성
 
@@ -142,7 +141,7 @@ class UnrealActions(HookBaseClass):
     ##############################################################################################################
     # helper methods which can be subclassed in custom hooks to fine tune the behaviour of things
 
-    def _get_destination_path_and_name(self, sg_publish_data): # 에셋의 목적지 경로와 이름 결정 (templates.yml 불러오기)
+    def _get_destination_path_and_name(self, sg_publish_data): # templates.yml 참조
         """
         Get the destination path and name from the publish data and the templates
 
@@ -155,9 +154,14 @@ class UnrealActions(HookBaseClass):
         # Enable if needed while in development
         # self.sgtk.reload_templates()
 
+        # 일단 모든 에셋이 기본 경로를 사용하도록 지정
+        destination_template = self.sgtk.templates["unreal_loader_project_path"]
+        destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
+
         # Get the publish context to determine the template to use
+
+        # Context를 사용할 경우
         context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
-        asset_class = _guess_asset_type_from_data(sg_publish_data)
 
         # try:
         #     asset_data = unreal.EditorAssetLibrary.find_asset_data(asset_path)
@@ -166,9 +170,6 @@ class UnrealActions(HookBaseClass):
         # except Exception as e:
         #     print(f"Error retrieving Unreal asset class: {e}")
         
-        print("*"*30)
-        print("*"*10, f"asset_class : {asset_class}")
-
         # Get the destination templates based on the context
         # Assets and Shots supported by default
         # Other entities fall back to Project
@@ -185,46 +186,52 @@ class UnrealActions(HookBaseClass):
         #     destination_template = self.sgtk.templates["unreal_loader_project_path"]
         #     destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
 
-        if asset_class is None:
-            destination_template = self.sgtk.templates["unreal_loader_project_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
+
+        # Asset Class를 사용하는 경우 (현재 상태에서 사용 불가)
+        # asset_class = _guess_asset_type_from_data(sg_publish_data)
+        # print("*"*10, f"asset_class : {asset_class}")
+
+        # if asset_class is None:
+        #     destination_template = self.sgtk.templates["unreal_loader_project_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
   
-        elif asset_class == "StaticMesh":
-            destination_template = self.sgtk.templates["unreal_loader_staticmesh_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_staticmesh_name"]
-        elif asset_class == "SkeletalMesh":
-            destination_template = self.sgtk.templates["unreal_loader_skeletalmesh_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_skeletalmesh_name"]
-        elif asset_class == "PhysicsAsset":
-            destination_template = self.sgtk.templates["unreal_loader_physicsasset_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_physicsasset_name"]
-        elif asset_class == "Material":
-            destination_template = self.sgtk.templates["unreal_loader_material_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_material_name"]
-        elif asset_class == "Texture2D":
-            destination_template = self.sgtk.templates["unreal_loader_texture_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_texture_name"]
+        # elif asset_class == "StaticMesh":
+        #     destination_template = self.sgtk.templates["unreal_loader_staticmesh_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_staticmesh_name"]
+        # elif asset_class == "SkeletalMesh":
+        #     destination_template = self.sgtk.templates["unreal_loader_skeletalmesh_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_skeletalmesh_name"]
+        # elif asset_class == "PhysicsAsset":
+        #     destination_template = self.sgtk.templates["unreal_loader_physicsasset_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_physicsasset_name"]
+        # elif asset_class == "Material":
+        #     destination_template = self.sgtk.templates["unreal_loader_material_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_material_name"]
+        # elif asset_class == "Texture2D":
+        #     destination_template = self.sgtk.templates["unreal_loader_texture_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_texture_name"]
 
-        elif asset_class == "NiagaraSystem":
-            destination_template = self.sgtk.templates["unreal_loader_fx_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_fx_name"]
-        elif asset_class == "GroomAsset":
-            destination_template = self.sgtk.templates["unreal_loader_groom_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_groom_name"]
+        # elif asset_class == "NiagaraSystem":
+        #     destination_template = self.sgtk.templates["unreal_loader_fx_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_fx_name"]
+        # elif asset_class == "GroomAsset":
+        #     destination_template = self.sgtk.templates["unreal_loader_groom_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_groom_name"]
 
-        elif asset_class == "AnimSequence":
-            destination_template = self.sgtk.templates["unreal_loader_animation_sq_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_animation_sq_name"]
-        elif asset_class == "TakeRecorder": # 퍼포먼스 캡처
-            destination_template = self.sgtk.templates["unreal_loader_performancecapture_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_performancecapture_name"]
+        # elif asset_class == "AnimSequence":
+        #     destination_template = self.sgtk.templates["unreal_loader_animation_sq_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_animation_sq_name"]
+        # elif asset_class == "TakeRecorder": # Performance Capture
+        #     destination_template = self.sgtk.templates["unreal_loader_performancecapture_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_performancecapture_name"]
 
-        else:
-            destination_template = self.sgtk.templates["unreal_loader_project_path"]
-            destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
+        # else:
+        #     destination_template = self.sgtk.templates["unreal_loader_project_path"]
+        #     destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
 
 
 
+        # 실제로 destination_path, name이 생성되는 부분은 여기서부터
 
         # Get the name field from the Publish Data
         name = sg_publish_data["name"]
@@ -268,39 +275,39 @@ class UnrealActions(HookBaseClass):
 
 
 
-    def make_template_ini(self): # sgtk 템플릿의 경로, 이름을 전달하기 위해 ini로 만듭니다.
-        template_ini = configparser.ConfigParser()
+    # def make_template_ini(self): # sgtk 템플릿의 경로, 이름을 전달하기 위해 ini로 만듭니다.
+    #     template_ini = configparser.ConfigParser()
 
-        template_ini["None"] = {"path" : self.sgtk.templates["unreal_loader_project_path"],
-                                        "name" : self.sgtk.templates["unreal_loader_project_name"]}
+    #     template_ini["None"] = {"path" : self.sgtk.templates["unreal_loader_project_path"],
+    #                                     "name" : self.sgtk.templates["unreal_loader_project_name"]}
 
-        template_ini["StaticMesh"] = {"path" : self.sgtk.templates["unreal_loader_staticmesh_path"],
-                                            "name" : self.sgtk.templates["unreal_loader_staticmesh_name"]}
-        template_ini["SkeletalMesh"] = {"path" : self.sgtk.templates["unreal_loader_skeletalmesh_path"],
-                                                "name" : self.sgtk.templates["unreal_loader_skeletalmesh_name"]}
-        template_ini["PhysicsAsset"] = {"path" : self.sgtk.templates["unreal_loader_physicsasset_path"],
-                                                "name" : self.sgtk.templates["unreal_loader_physicsasset_name"]}
-        template_ini["Material"] = {"path" : self.sgtk.templates["unreal_loader_material_path"],
-                                            "name" : self.sgtk.templates["unreal_loader_material_name"]}
-        template_ini["Texture2D"] = {"path" : self.sgtk.templates["unreal_loader_texture_path"],
-                                            "name" : self.sgtk.templates["unreal_loader_texture_name"]}
-        template_ini["NiagaraSystem"] = {"path" : self.sgtk.templates["unreal_loader_fx_path"],
-                                                "name" : self.sgtk.templates["unreal_loader_fx_name"]}
-        template_ini["GroomAsset"] = {"path" : self.sgtk.templates["unreal_loader_groom_path"],
-                                            "name" : self.sgtk.templates["unreal_loader_groom_name"]}
+    #     template_ini["StaticMesh"] = {"path" : self.sgtk.templates["unreal_loader_staticmesh_path"],
+    #                                         "name" : self.sgtk.templates["unreal_loader_staticmesh_name"]}
+    #     template_ini["SkeletalMesh"] = {"path" : self.sgtk.templates["unreal_loader_skeletalmesh_path"],
+    #                                             "name" : self.sgtk.templates["unreal_loader_skeletalmesh_name"]}
+    #     template_ini["PhysicsAsset"] = {"path" : self.sgtk.templates["unreal_loader_physicsasset_path"],
+    #                                             "name" : self.sgtk.templates["unreal_loader_physicsasset_name"]}
+    #     template_ini["Material"] = {"path" : self.sgtk.templates["unreal_loader_material_path"],
+    #                                         "name" : self.sgtk.templates["unreal_loader_material_name"]}
+    #     template_ini["Texture2D"] = {"path" : self.sgtk.templates["unreal_loader_texture_path"],
+    #                                         "name" : self.sgtk.templates["unreal_loader_texture_name"]}
+    #     template_ini["NiagaraSystem"] = {"path" : self.sgtk.templates["unreal_loader_fx_path"],
+    #                                             "name" : self.sgtk.templates["unreal_loader_fx_name"]}
+    #     template_ini["GroomAsset"] = {"path" : self.sgtk.templates["unreal_loader_groom_path"],
+    #                                         "name" : self.sgtk.templates["unreal_loader_groom_name"]}
 
-        template_ini["AnimSequence"] = {"path" : self.sgtk.templates["unreal_loader_animation_sq_path"],
-                                                "name" : self.sgtk.templates["unreal_loader_animation_sq_name"]}
-        template_ini["TakeRecorder"] = {"path" : self.sgtk.templates["unreal_loader_performancecapture_path"],
-                                                "name" : self.sgtk.templates["unreal_loader_performancecapture_name"]}
+    #     template_ini["AnimSequence"] = {"path" : self.sgtk.templates["unreal_loader_animation_sq_path"],
+    #                                             "name" : self.sgtk.templates["unreal_loader_animation_sq_name"]}
+    #     template_ini["TakeRecorder"] = {"path" : self.sgtk.templates["unreal_loader_performancecapture_path"],
+    #                                             "name" : self.sgtk.templates["unreal_loader_performancecapture_name"]}
 
-        print("A"*20)
-        for section in template_ini.sections():
-            print(f"[{section}]")
-            for key, value in template_ini.items(section):
-                print(f"{key} = {value}")
+    #     print("A"*20)
+    #     for section in template_ini.sections():
+    #         print(f"[{section}]")
+    #         for key, value in template_ini.items(section):
+    #             print(f"{key} = {value}")
 
-        return template_ini
+    #     return template_ini
 
 
 
@@ -360,11 +367,11 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     # template_ini = unreal_actions_instance.make_template_ini()
 
     unreal_actions = UnrealActions(parent="SomeParentValue")
-    template_ini = unreal_actions.make_template_ini() #### 클래스 내부의 함수 리턴 값 받아오는데 문제 있음
+    # template_ini = unreal_actions.make_template_ini() #### 클래스 내부의 함수 리턴 값 받아오는데 문제 있음
 
     save_all_assets.save_all_unsaved_assets()
     unreal_rename.list_and_reorganize_assets()
-    unreal_rename.get_template_ini(template_ini)
+    # unreal_rename.get_template_ini(template_ini)
 
     return first_imported_object
 
@@ -420,21 +427,21 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     return task
 
 
-def _guess_asset_type_from_data(sg_publish_data):
-    """
-    파일명, description으로 찾기"""
-    print("*"*10, "_guess_asset_type_from_data 함수 실행")
+# def _guess_asset_type_from_data(sg_publish_data):
+#     """
+#     파일명, description으로 찾기"""
+#     print("*"*10, "_guess_asset_type_from_data 함수 실행")
 
-    name = sg_publish_data.get("code", "").lower()
-    description = sg_publish_data.get("description", "").lower()
+#     name = sg_publish_data.get("code", "").lower()
+#     description = sg_publish_data.get("description", "").lower()
     
-    # Animation 관련 키워드 체크
-    if any(keyword in name or keyword in description for keyword in ["anim", "ani", "sequence"]):
-        return "AnimSequence"
+#     # Animation 관련 키워드 체크
+#     if any(keyword in name or keyword in description for keyword in ["anim", "ani", "sequence"]):
+#         return "AnimSequence"
         
-    # Skeletal Mesh 관련 키워드 체크
-    if any(keyword in name or keyword in description for keyword in ["skel", "rig", "character"]):
-        return "SkeletalMesh"
+#     # Skeletal Mesh 관련 키워드 체크
+#     if any(keyword in name or keyword in description for keyword in ["skel", "rig", "character"]):
+#         return "SkeletalMesh"
         
-    # 기본값으로 StaticMesh 반환
-    return "StaticMesh"
+#     # 기본값으로 StaticMesh 반환
+#     return "StaticMesh"
