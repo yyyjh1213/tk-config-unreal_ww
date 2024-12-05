@@ -57,6 +57,7 @@ class AppLaunch(tank.Hook):
         :returns: (dict) The two valid keys are 'command' (str) and 'return_code' (int).
         """
 
+
         system = platform.system()
 
         app_name = ENGINES[engine_name]
@@ -96,6 +97,9 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
+
+            import get_unreal_template # 앱을 시작하기 전에 언리얼엔진 템플릿을 사용할 수 있도록 세팅
+            get_unreal_template.run()
 
         if depart_confirm:
             
