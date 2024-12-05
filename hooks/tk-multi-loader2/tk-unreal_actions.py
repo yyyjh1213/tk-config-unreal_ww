@@ -158,6 +158,16 @@ class UnrealActions(HookBaseClass):
         destination_template = self.sgtk.templates["unreal_loader_project_path"]
         destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
 
+        asset_type = self.sgtk.templates["ue_sg_asset_type"]
+        asset_name = self.sgtk.templates["ue_sg_asset_name"]
+        sequence_name = self.sgtk.templates["ue_sg_sequence_name"]
+        shot_name = self.sgtk.templates["ue_sg_shot_name"]
+        print("A"*100)
+        print(f"asset_type : {asset_type}")
+        print(f"asset_name : {asset_name}")
+        print(f"sequence_name : {sequence_name}")
+        print(f"shot_name : {shot_name}")
+
         # Get the publish context to determine the template to use
 
         # Context를 사용할 경우
@@ -274,7 +284,6 @@ class UnrealActions(HookBaseClass):
         return destination_path, destination_name
 
 
-
     # def make_template_ini(self): # sgtk 템플릿의 경로, 이름을 전달하기 위해 ini로 만듭니다.
     #     template_ini = configparser.ConfigParser()
 
@@ -309,6 +318,20 @@ class UnrealActions(HookBaseClass):
 
     #     return template_ini
 
+
+    def get_sg_asset_shot_keys(self):
+        asset_type = self.sgtk.templates["ue_sg_asset_type"]
+        asset_name = self.sgtk.templates["ue_sg_asset_name"]
+        sequence_name = self.sgtk.templates["ue_sg_sequence_name"]
+        shot_name = self.sgtk.templates["ue_sg_shot_name"]
+        
+        print("B"*100)
+        print(f"asset_type : {asset_type}")
+        print(f"asset_name : {asset_name}")
+        print(f"sequence_name : {sequence_name}")
+        print(f"shot_name : {shot_name}")
+
+        return asset_type, asset_name, sequence_name, shot_name
 
 
 """
@@ -366,7 +389,7 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     # unreal_actions_instance = UnrealActions() # self가 해당 인스턴스를 자동으로 참조하도록 인스턴스를 통해 호출
     # template_ini = unreal_actions_instance.make_template_ini()
 
-    unreal_actions = UnrealActions(parent="SomeParentValue")
+    # unreal_actions = UnrealActions(parent="SomeParentValue")
     # template_ini = unreal_actions.make_template_ini() #### 클래스 내부의 함수 리턴 값 받아오는데 문제 있음
 
     save_all_assets.save_all_unsaved_assets()
