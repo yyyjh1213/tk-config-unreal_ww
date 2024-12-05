@@ -100,6 +100,7 @@ class AppLaunch(tank.Hook):
 
         self.parent.log_debug("W"*20)
         self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
+        self.parent.log_debug("sys.path: %s" % sys.path)
 
         import set_unreal_template
         set_unreal_template.run()
