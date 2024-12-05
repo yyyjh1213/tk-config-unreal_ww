@@ -99,7 +99,12 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("sys.path: %s" % sys.path)
 
         self.parent.log_debug("W"*20)
-        print("P"*20)
+        # packages/win 디렉토리 경로 설정
+        win_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages/win"))
+        # sys.path에 경로 추가
+        if win_dir not in sys.path:
+            sys.path.append(win_dir)
+
         self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
         import get_unreal_template # 앱을 시작하기 전에 언리얼엔진 템플릿을 사용할 수 있도록 세팅
         get_unreal_template.run()
