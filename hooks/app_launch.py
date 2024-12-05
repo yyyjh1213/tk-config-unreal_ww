@@ -75,7 +75,7 @@ class AppLaunch(tank.Hook):
         else:
             self.parent.log_debug("No department found for user: %s" % user)
 
-        if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows':
+        if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows': # 원진님이 추가한 부분
             now_dir = os.path.dirname(os.path.abspath(__file__))
             packages = os.path.join(now_dir, 'packages', 'win')
 
@@ -98,7 +98,9 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
 
+        # 효은이가 추가한 부분
         self.parent.log_debug("W"*20)
+        self.parent.log_debug(f"app_name : {app_name}")
         self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
         self.parent.log_debug("sys.path: %s" % sys.path)
 
