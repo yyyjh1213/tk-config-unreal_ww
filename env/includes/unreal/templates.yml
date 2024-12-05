@@ -55,6 +55,8 @@ paths:
     # No context info used in template, developers expected to further customize
     unreal.asset_publish:
         definition: 'assets/unreal/exports/{YYYY}_{MM}_{DD}/{name}.fbx'
+
+
 strings:
    # entity-specific templates for importing files into the Unreal content browser
     # template logic is defined in Python, not settings:
@@ -67,6 +69,7 @@ strings:
 
     unreal_loader_project_path: "/Game/Assets/"
     unreal_loader_project_name: "{ue_sg_asset_name}"
+
 
     # Unreal 내부에서는 현재 아래 템플릿을 사용하고 있지 않습니다.
     # Assets (mesh, material, texture)

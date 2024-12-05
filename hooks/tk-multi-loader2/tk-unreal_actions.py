@@ -152,93 +152,40 @@ class UnrealActions(HookBaseClass):
         print("*"*10, f"sg_publish_data : {sg_publish_data}")
 
         # Enable if needed while in development
-        # self.sgtk.reload_templates()
+        self.sgtk.reload_templates()
 
         # 일단 모든 에셋이 기본 경로를 사용하도록 지정
-        destination_template = self.sgtk.templates["unreal_loader_project_path"]
-        destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
+        # destination_template = self.sgtk.templates["unreal_loader_project_path"]
+        # destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
 
-        asset_type = self.sgtk.templates["ue_sg_asset_type"]
-        asset_name = self.sgtk.templates["ue_sg_asset_name"]
-        sequence_name = self.sgtk.templates["ue_sg_sequence_name"]
-        shot_name = self.sgtk.templates["ue_sg_shot_name"]
-        print("A"*100)
-        print(f"asset_type : {asset_type}")
-        print(f"asset_name : {asset_name}")
-        print(f"sequence_name : {sequence_name}")
-        print(f"shot_name : {shot_name}")
+        # asset_type = self.sgtk.templates["ue_sg_asset_type"]
+        # asset_name = self.sgtk.templates["ue_sg_asset_name"]
+        # sequence_name = self.sgtk.templates["ue_sg_sequence_name"]
+        # shot_name = self.sgtk.templates["ue_sg_shot_name"]
+        # print("A"*100)
+        # print(f"asset_type : {asset_type}")
+        # print(f"asset_name : {asset_name}")
+        # print(f"sequence_name : {sequence_name}")
+        # print(f"shot_name : {shot_name}")
 
         # Get the publish context to determine the template to use
-
-        # Context를 사용할 경우
         context = self.sgtk.context_from_entity_dictionary(sg_publish_data)
 
-        # try:
-        #     asset_data = unreal.EditorAssetLibrary.find_asset_data(asset_path)
-        #     if asset_data.is_valid():
-        #         asset_class = asset_data.get_asset().get_class().get_name()
-        # except Exception as e:
-        #     print(f"Error retrieving Unreal asset class: {e}")
-        
         # Get the destination templates based on the context
         # Assets and Shots supported by default
         # Other entities fall back to Project
-        # if context.entity is None:
-        #     destination_template = self.sgtk.templates["unreal_loader_project_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
-        # elif context.entity["type"] == "Asset":
-        #     destination_template = self.sgtk.templates["unreal_loader_asset_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_asset_name"]
-        # elif context.entity["type"] == "Shot":
-        #     destination_template = self.sgtk.templates["unreal_loader_shot_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_shot_name"]
-        # else:
-        #     destination_template = self.sgtk.templates["unreal_loader_project_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
-
-
-        # Asset Class를 사용하는 경우 (현재 상태에서 사용 불가)
-        # asset_class = _guess_asset_type_from_data(sg_publish_data)
-        # print("*"*10, f"asset_class : {asset_class}")
-
-        # if asset_class is None:
-        #     destination_template = self.sgtk.templates["unreal_loader_project_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
-  
-        # elif asset_class == "StaticMesh":
-        #     destination_template = self.sgtk.templates["unreal_loader_staticmesh_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_staticmesh_name"]
-        # elif asset_class == "SkeletalMesh":
-        #     destination_template = self.sgtk.templates["unreal_loader_skeletalmesh_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_skeletalmesh_name"]
-        # elif asset_class == "PhysicsAsset":
-        #     destination_template = self.sgtk.templates["unreal_loader_physicsasset_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_physicsasset_name"]
-        # elif asset_class == "Material":
-        #     destination_template = self.sgtk.templates["unreal_loader_material_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_material_name"]
-        # elif asset_class == "Texture2D":
-        #     destination_template = self.sgtk.templates["unreal_loader_texture_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_texture_name"]
-
-        # elif asset_class == "NiagaraSystem":
-        #     destination_template = self.sgtk.templates["unreal_loader_fx_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_fx_name"]
-        # elif asset_class == "GroomAsset":
-        #     destination_template = self.sgtk.templates["unreal_loader_groom_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_groom_name"]
-
-        # elif asset_class == "AnimSequence":
-        #     destination_template = self.sgtk.templates["unreal_loader_animation_sq_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_animation_sq_name"]
-        # elif asset_class == "TakeRecorder": # Performance Capture
-        #     destination_template = self.sgtk.templates["unreal_loader_performancecapture_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_performancecapture_name"]
-
-        # else:
-        #     destination_template = self.sgtk.templates["unreal_loader_project_path"]
-        #     destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
-
+        if context.entity is None:
+            destination_template = self.sgtk.templates["unreal_loader_project_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
+        elif context.entity["type"] == "Asset":
+            destination_template = self.sgtk.templates["unreal_loader_asset_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_asset_name"]
+        elif context.entity["type"] == "Shot":
+            destination_template = self.sgtk.templates["unreal_loader_shot_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_shot_name"]
+        else:
+            destination_template = self.sgtk.templates["unreal_loader_project_path"]
+            destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
 
 
         # 실제로 destination_path, name이 생성되는 부분은 여기서부터
@@ -318,20 +265,6 @@ class UnrealActions(HookBaseClass):
 
     #     return template_ini
 
-
-    def get_sg_asset_shot_keys(self):
-        asset_type = self.sgtk.templates["ue_sg_asset_type"]
-        asset_name = self.sgtk.templates["ue_sg_asset_name"]
-        sequence_name = self.sgtk.templates["ue_sg_sequence_name"]
-        shot_name = self.sgtk.templates["ue_sg_shot_name"]
-        
-        print("B"*100)
-        print(f"asset_type : {asset_type}")
-        print(f"asset_name : {asset_name}")
-        print(f"sequence_name : {sequence_name}")
-        print(f"shot_name : {shot_name}")
-
-        return asset_type, asset_name, sequence_name, shot_name
 
 
 """
