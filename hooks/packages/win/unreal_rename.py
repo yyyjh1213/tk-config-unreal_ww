@@ -165,7 +165,5 @@ def sanitize_asset_path(path):
 # 스크립트 실행
 if __name__ == "__main__":
 
-    open_unreal_templates()
-
     with unreal.ScopedEditorTransaction("Reorganize Assets by Class") as transaction:
         list_and_reorganize_assets()
