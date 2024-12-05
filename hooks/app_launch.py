@@ -101,7 +101,7 @@ class AppLaunch(tank.Hook):
         # 효은이가 추가한 부분
         self.parent.log_debug("W"*20)
         self.parent.log_debug(f"app_name : {app_name}") # app_name : unreal
-        self.parent.log_debug("W"*20)
+        self.parent.log_debug(f"app_path : {app_path}")
         self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
         self.parent.log_debug("sys.path: %s" % sys.path)
 
