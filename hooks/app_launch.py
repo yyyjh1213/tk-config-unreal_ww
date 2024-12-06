@@ -19,6 +19,7 @@ import sys
 import subprocess
 import platform
 import tank
+import shutil
 
 
 
@@ -109,12 +110,29 @@ class AppLaunch(tank.Hook):
         # engine_path = os.path.join(app_path.split(os.sep)[:5])
         split_path = app_path.split(os.sep)  # 경로를 분리
         engine_path = os.sep.join(split_path[:6])  # 필요한 부분만 다시 결합
-        template_path = engine_path + "/Template"
+        template_path = engine_path + "\Template"
         self.parent.log_debug("G"*20)
         self.parent.log_debug(f"app_path : {app_path}")
         self.parent.log_debug(f"split_path : {split_path}")
         self.parent.log_debug(f"engine_path : {engine_path}")
         self.parent.log_debug(f"template_path : {template_path}")
+
+
+        # 소스 템플릿 디렉토리 (임의로 지정)
+        src_path = "C:/Westworld_Pipeline/Templates/TP_West"
+
+        try:
+            # 목적지 디렉토리가 존재하면 삭제
+            if os.path.exists(template_path):
+                shutil.rmtree(template_path)
+            
+            # 디렉토리 이동
+            shutil.move(src_path, template_path)
+            print(f"성공적으로 이동됨: {src_path} -> {template_path}")
+
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+
 
         # import set_unreal_template # 모듈 말고 직접 여기에 적기
         # set_unreal_template.run(app_path)
