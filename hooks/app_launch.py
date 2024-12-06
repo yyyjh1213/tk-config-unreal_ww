@@ -119,7 +119,7 @@ class AppLaunch(tank.Hook):
 
 
         # 소스 템플릿 디렉토리 (임의로 지정)
-        src_path = "C:/Westworld_Pipeline/Templates/TP_West"
+        src_path = "C:\Westworld_Pipeline\Templates\TP_West"
 
         try:
             # 목적지 디렉토리가 존재하면 삭제
