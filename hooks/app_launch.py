@@ -110,7 +110,7 @@ class AppLaunch(tank.Hook):
         # engine_path = os.path.join(app_path.split(os.sep)[:5])
         split_path = app_path.split(os.sep)  # 경로를 분리
         engine_path = os.sep.join(split_path[:6])  # 필요한 부분만 다시 결합
-        template_path = engine_path + "\Template"
+        template_path = engine_path + "\Templates"
         self.parent.log_debug("G"*20)
         self.parent.log_debug(f"app_path : {app_path}")
         self.parent.log_debug(f"split_path : {split_path}")
