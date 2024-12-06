@@ -105,8 +105,13 @@ class AppLaunch(tank.Hook):
         self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
         self.parent.log_debug("sys.path: %s" % sys.path)
 
-        import set_unreal_template
-        set_unreal_template.run(app_path)
+        engine_dir = app_path.splilt()
+        engine_path = os.path.join(engine_dir.split(os.sep)[:6])
+        print("G"*20)
+        print(f"engine_dir : {engine_path}")
+
+        # import set_unreal_template # 모듈 말고 직접 여기에 적기
+        # set_unreal_template.run(app_path)
 
         if depart_confirm:
             
