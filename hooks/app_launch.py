@@ -106,7 +106,7 @@ class AppLaunch(tank.Hook):
         self.parent.log_debug("sys.path: %s" % sys.path)
 
         import set_unreal_template
-        set_unreal_template.run()
+        set_unreal_template.run(app_path)
 
         if depart_confirm:
             

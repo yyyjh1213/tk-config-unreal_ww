@@ -8,9 +8,10 @@ def get_ue_template():
     template_path = "C:/Westworld_Pipeline/Templates/TP_West"
     return template_path
 
-def get_engine_dir():
+def get_engine_dir(app_path):
     print("엔진과 템플릿 경로 찾기")
     # engine_dir = unreal.SystemLibrary.get_engine_directory()
+    print(app_path)
 
     # # 현재 엔진 인스턴스 가져오기
     # engine = sgtk.platform.current_engine()
@@ -72,10 +73,10 @@ def move(src_dir, dst_dir):
 
 
 # Execute
-def run():
+def run(app_path):
     # download_latest_ue_template()
     print("D"*20, "get_unreal_template 모듈 실행")
     src_directory = get_ue_template()
-    dst_directory = get_engine_dir()
+    dst_directory = get_engine_dir(app_path)
     move(src_directory, dst_directory)
     get_app_info()
