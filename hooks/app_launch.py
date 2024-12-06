@@ -125,13 +125,13 @@ class AppLaunch(tank.Hook):
             # 목적지 디렉토리가 존재하면 삭제
             if os.path.exists(template_path):
                 shutil.rmtree(template_path)
-            
+
             # 디렉토리 이동
             shutil.move(src_path, template_path)
-            print(f"성공적으로 이동됨: {src_path} -> {template_path}")
+            self.parent.log_debug(f"성공적으로 이동됨: {src_path} -> {template_path}")
 
         except Exception as e:
-            print(f"에러 발생: {str(e)}")
+            self.parent.log_debug(f"에러 발생: {str(e)}")
 
 
         # import set_unreal_template # 모듈 말고 직접 여기에 적기
