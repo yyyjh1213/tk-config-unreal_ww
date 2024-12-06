@@ -106,7 +106,10 @@ class AppLaunch(tank.Hook):
         self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
         self.parent.log_debug("sys.path: %s" % sys.path)
 
-        app_path = str(app_path)
+        # app_path = str(app_path) # # C:\Westworld_Pipeline\Templates\TP_West
+        app_path = os.path.normpath(app_path)
+        self.parent.log_debug(f"normpath 출력 확인 app_path : {app_path}")
+
         # engine_path = os.path.join(app_path.split(os.sep)[:5])
         split_path = app_path.split(os.sep)  # 경로를 분리
         engine_path = os.sep.join(split_path[:6])  # 필요한 부분만 다시 결합
@@ -117,25 +120,21 @@ class AppLaunch(tank.Hook):
         self.parent.log_debug(f"engine_path : {engine_path}")
         self.parent.log_debug(f"template_path : {template_path}")
 
-
         # 소스 템플릿 디렉토리 (임의로 지정)
-        src_path = "C:\Westworld_Pipeline\Templates\TP_West"
+        src_path = "C:/Westworld_Pipeline/Templates/TP_West"
+        src_path = os.path.normpath(src_path)
+        self.parent.log_debug(f"normpath 출력 확인 src_path : {src_path}")
 
         try:
-            # 목적지 디렉토리가 존재하면 삭제
             if os.path.exists(template_path):
                 shutil.rmtree(template_path)
 
-            # 디렉토리 이동
             shutil.copytree(src_path, template_path)
-            self.parent.log_debug(f"성공적으로 이동됨: {src_path} -> {template_path}")
+            self.parent.log_debug(f"템플릿 복사 성공 : {src_path} -> {template_path}")
 
         except Exception as e:
             self.parent.log_debug(f"에러 발생: {str(e)}")
 
-
-        # import set_unreal_template # 모듈 말고 직접 여기에 적기
-        # set_unreal_template.run(app_path)
 
         if depart_confirm:
             
