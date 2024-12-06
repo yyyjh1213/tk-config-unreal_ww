@@ -127,7 +127,7 @@ class AppLaunch(tank.Hook):
                 shutil.rmtree(template_path)
 
             # 디렉토리 이동
-            shutil.move(src_path, template_path)
+            shutil.copytree(src_path, template_path)
             self.parent.log_debug(f"성공적으로 이동됨: {src_path} -> {template_path}")
 
         except Exception as e:
