@@ -101,7 +101,7 @@ class AppLaunch(tank.Hook):
         # 효은이가 추가한 부분
         self.parent.log_debug("W"*20)
         self.parent.log_debug(f"app_name : {app_name}") # app_name : unreal
-        self.parent.log_debug(f"app_path : {app_path}")
+        self.parent.log_debug(f"app_path : {app_path}") # C:\Program Files\Epic Games\UE_5.4\Engine\Binaries\Win64\UnrealEditor.exe
         self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
         self.parent.log_debug("sys.path: %s" % sys.path)
 
@@ -110,11 +110,11 @@ class AppLaunch(tank.Hook):
         split_path = app_path.split(os.sep)  # 경로를 분리
         engine_path = os.sep.join(split_path[:6])  # 필요한 부분만 다시 결합
         template_path = engine_path + "/Template"
-        print("G"*20)
-        print(f"app_path : {app_path}")
-        print(f"split_path : {split_path}")
-        print(f"engine_path : {engine_path}")
-        print(f"template_path : {template_path}")
+        self.parent.log_debug("G"*20)
+        self.parent.log_debug(f"app_path : {app_path}")
+        self.parent.log_debug(f"split_path : {split_path}")
+        self.parent.log_debug(f"engine_path : {engine_path}")
+        self.parent.log_debug(f"template_path : {template_path}")
 
         # import set_unreal_template # 모듈 말고 직접 여기에 적기
         # set_unreal_template.run(app_path)
