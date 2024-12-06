@@ -105,9 +105,14 @@ class AppLaunch(tank.Hook):
         self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
         self.parent.log_debug("sys.path: %s" % sys.path)
 
-        engine_path = os.path.join(app_path.split(os.sep)[:5])
+        app_path = str(app_path)
+        # engine_path = os.path.join(app_path.split(os.sep)[:5])
+        split_path = app_path.split(os.sep)  # 경로를 분리
+        engine_path = os.sep.join(split_path[:6])  # 필요한 부분만 다시 결합
         template_path = engine_path + "/Template"
         print("G"*20)
+        print(f"app_path : {app_path}")
+        print(f"split_path : {split_path}")
         print(f"engine_path : {engine_path}")
         print(f"template_path : {template_path}")
 
