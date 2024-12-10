@@ -108,6 +108,7 @@ class AppLaunch(tank.Hook):
             sys.path.append(win_dir)
 
         import make_custom_menus
+        make_custom_menus.add_content_browser_menu()
         make_custom_menus.run()
 
 
