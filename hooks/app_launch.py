@@ -88,11 +88,14 @@ class AppLaunch(tank.Hook):
             ]
 
             for root, dirs, _ in os.walk(packages): # for문 효은이가 추가
+                sys.path.append(root)
+                external_paths.append(root)
                 for dir_name in dirs:
-                    path = os.path.join(root, dir_name)
-                    self.parent.log_debug(f"foot : {root}")
+                    self.parent.log_debug(f"root : {root}")
                     self.parent.log_debug(f"dir_name : {dir_name}")
                     self.parent.log_debug(f"path : {path}")
+
+                    path = os.path.join(root, dir_name)
                     sys.path.append(path)
                     external_paths.append(path)
 
