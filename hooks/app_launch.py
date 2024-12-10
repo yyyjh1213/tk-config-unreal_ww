@@ -79,7 +79,7 @@ class AppLaunch(tank.Hook):
 
         # 모듈 경로 추가
         if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows':
-            now_dir = os.path.dirname(os.path.abspath(__file__)) # hooks 경로
+            now_dir = os.path.dirname(os.path.abspath(__file__))
             packages = os.path.join(now_dir, 'packages', 'win')
 
             external_paths = [
@@ -87,15 +87,10 @@ class AppLaunch(tank.Hook):
                 packages
             ]
 
-            for root, dirs, _ in os.walk(packages): # for문 효은이가 추가
-            #     sys.path.append(root)
-                # external_paths.append(root)
+            for root, dirs, _ in os.walk(packages):
                 for dir_name in dirs:
                     path = os.path.join(root, dir_name)
-            #         self.parent.log_debug(f"root : {root}")
-            #         self.parent.log_debug(f"dir_name : {dir_name}")
-            #         self.parent.log_debug(f"path : {path}")
-            #         sys.path.append(path)
+                    sys.path.append(path)
                     external_paths.append(path)
 
             new_paths = os.pathsep.join(external_paths)
@@ -110,42 +105,46 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
 
-        # 효은이가 추가한 부분 (Copy UE Project Template)
-        self.parent.log_debug("W"*20)
-        self.parent.log_debug(f"app_name : {app_name}") # app_name : unreal
-        self.parent.log_debug(f"app_path : {app_path}") # C:\Program Files\Epic Games\UE_5.4\Engine\Binaries\Win64\UnrealEditor.exe
-        self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
-        self.parent.log_debug("sys.path: %s" % sys.path)
 
-        # app_path = str(app_path) # # C:\Westworld_Pipeline\Templates\TP_West
-        app_path = os.path.normpath(app_path)
-        self.parent.log_debug(f"normpath 출력 확인 app_path : {app_path}")
-
-        # engine_path = os.path.join(app_path.split(os.sep)[:5])
-        split_path = app_path.split(os.sep)
-        engine_path = os.sep.join(split_path[:6])
-        template_path = engine_path + "\Templates"
-        self.parent.log_debug("G"*20)
-        self.parent.log_debug(f"app_path : {app_path}")
-        self.parent.log_debug(f"split_path : {split_path}")
-        self.parent.log_debug(f"engine_path : {engine_path}")
-        self.parent.log_debug(f"template_path : {template_path}")
-
-        # 소스 템플릿 디렉토리 (임의로 지정)
-        src_path = "C:/Westworld_Pipeline/Templates/TP_West"
-        src_path = os.path.normpath(src_path)
-        self.parent.log_debug(f"normpath 출력 확인 src_path : {src_path}")
-
-        if os.path.exists(template_path):
-            shutil.rmtree(template_path)
-
-        shutil.copytree(src_path, template_path)
-        self.parent.log_debug(f"템플릿 복사 성공 : {src_path} -> {template_path}")
-
-
-        # make_custom_menus.py 실행
+        # 커스텀 메뉴 만들기
         import make_custom_menus
         make_custom_menus.run()
+
+
+        # 효은이가 추가한 부분 (Copy UE Project Template)
+        self.parent.log_debug("W"*20)
+        # self.parent.log_debug(f"app_name : {app_name}") # app_name : unreal
+        # self.parent.log_debug(f"app_path : {app_path}") # C:\Program Files\Epic Games\UE_5.4\Engine\Binaries\Win64\UnrealEditor.exe
+        # self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
+        # self.parent.log_debug("sys.path: %s" % sys.path)
+
+        # # app_path = str(app_path) # # C:\Westworld_Pipeline\Templates\TP_West
+        # app_path = os.path.normpath(app_path)
+        # self.parent.log_debug(f"normpath 출력 확인 app_path : {app_path}")
+
+        # # engine_path = os.path.join(app_path.split(os.sep)[:5])
+        # split_path = app_path.split(os.sep)
+        # engine_path = os.sep.join(split_path[:6])
+        # template_path = engine_path + "\Templates"
+        # self.parent.log_debug("G"*20)
+        # self.parent.log_debug(f"app_path : {app_path}")
+        # self.parent.log_debug(f"split_path : {split_path}")
+        # self.parent.log_debug(f"engine_path : {engine_path}")
+        # self.parent.log_debug(f"template_path : {template_path}")
+
+        # # 소스 템플릿 디렉토리 (임의로 지정)
+        # src_path = "C:/Westworld_Pipeline/Templates/TP_West"
+        # src_path = os.path.normpath(src_path)
+        # self.parent.log_debug(f"normpath 출력 확인 src_path : {src_path}")
+
+        # if os.path.exists(template_path):
+        #     shutil.rmtree(template_path)
+
+        # shutil.copytree(src_path, template_path)
+        # self.parent.log_debug(f"템플릿 복사 성공 : {src_path} -> {template_path}")
+
+
+
 
 
 
