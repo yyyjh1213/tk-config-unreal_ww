@@ -19,8 +19,6 @@ import sys
 import subprocess
 import platform
 import tank
-import shutil
-import psutil
 
 
 ENGINES = {
