@@ -90,7 +90,7 @@ class AppLaunch(tank.Hook):
             for root, dirs, _ in os.walk(packages):
                 for dir_name in dirs:
                     path = os.path.join(root, dir_name)
-                    sys.path.append(path)
+                    # sys.path.append(path)
                     external_paths.append(path)
 
             new_paths = os.pathsep.join(external_paths)
