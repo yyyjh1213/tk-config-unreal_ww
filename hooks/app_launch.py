@@ -93,7 +93,7 @@ class AppLaunch(tank.Hook):
             #         sys.path.append(path)
             #         external_paths.append(path)
 
-            # new_paths = os.pathsep.join(external_paths)
+            new_paths = os.pathsep.join(external_paths)
 
             if 'UE_PYTHONPATH' in os.environ:
                 os.environ['UE_PYTHONPATH'] += os.pathsep + new_paths
