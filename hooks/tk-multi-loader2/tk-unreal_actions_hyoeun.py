@@ -264,8 +264,9 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     current_file_path = os.path.dirname(__file__)
     print(f"current file path : {current_file_path}")
 
-    win_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages/win"))
+    win_dir = os.path.abspath(os.path.dirname(__file__))
     print(f"********** win_dir : {win_dir}")
+    # ********** win_dir : ...\gitbranch\tk-config-unreal_ww.git\d3923dc\hooks\packages\win
 
     # sys.path에 경로 추가
     if win_dir not in sys.path:
