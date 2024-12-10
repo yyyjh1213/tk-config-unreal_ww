@@ -102,9 +102,9 @@ class AppLaunch(tank.Hook):
 
             # app_args에 Python 스크립트 실행 명령 추가
             if app_args:
-                app_args += f' -ExecutePythonScript="{startup_script}"'
+                app_args += f' -PythonStartupScript="{startup_script}"'
             else:
-                app_args = f'-ExecutePythonScript="{startup_script}"'
+                app_args = f'-PythonStartupScript="{startup_script}"'
 
 
             self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
