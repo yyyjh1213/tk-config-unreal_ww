@@ -76,22 +76,23 @@ class AppLaunch(tank.Hook):
         else:
             self.parent.log_debug("No department found for user: %s" % user)
 
-
-        # 모듈 경로 추가
+        # 패키지 경로 추가
         if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows':
             now_dir = os.path.dirname(os.path.abspath(__file__))
             packages = os.path.join(now_dir, 'packages', 'win')
+
+            sys.path.append(packages)
 
             external_paths = [
                 "external_path3",
                 packages
             ]
 
-            for root, dirs, _ in os.walk(packages):
-                for dir_name in dirs:
-                    path = os.path.join(root, dir_name)
-                    # sys.path.append(path)
-                    external_paths.append(path)
+            # for root, dirs, _ in os.walk(packages):
+            #     for dir_name in dirs:
+            #         path = os.path.join(root, dir_name)
+            #         # sys.path.append(path)
+            #         external_paths.append(path)
 
             new_paths = os.pathsep.join(external_paths)
 
@@ -106,9 +107,12 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("sys.path: %s" % sys.path)
 
 
-        # 커스텀 메뉴 만들기
-        import make_custom_menus
-        make_custom_menus.run()
+        # # 커스텀 메뉴 만들기
+        # self.parent.log_debug("B"*20)
+        # import make_custom_menus
+        # make_custom_menus.run()
+        # self.parent.log_debug("A"*20)
+
 
 
         # 효은이가 추가한 부분 (Copy UE Project Template)
