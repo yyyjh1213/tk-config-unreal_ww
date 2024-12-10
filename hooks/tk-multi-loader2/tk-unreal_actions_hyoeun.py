@@ -260,11 +260,8 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
                 first_imported_object = object_path
 
 
-    # packages/win 디렉토리 경로 설정
-    win_dir = os.path.abspath(os.path.dirname(__file__))
-    # C:\Users\admin\AppData\Roaming\Shotgun\bundle_cache\gitbranch\tk-config-unreal_ww.git\00f00de\hooks\tk-multi-loader2
-
     # sys.path에 경로 추가
+    win_dir = os.path.abspath(os.path.dirname(__file__))
     if win_dir not in sys.path:
         sys.path.append(win_dir)
 

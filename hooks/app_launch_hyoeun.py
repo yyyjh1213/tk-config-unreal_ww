@@ -162,6 +162,12 @@ class AppLaunch(tank.Hook):
             exit_code = os.system(cmd)
 
             self.parent.log_debug("****************** BEFORE LAUNCH")
+            
+            # sys.path에 경로 추가
+            win_dir = os.path.abspath(os.path.dirname(__file__))
+            if win_dir not in sys.path:
+                sys.path.append(win_dir)
+            
             import make_custom_menus
             make_custom_menus.run()
 
