@@ -100,6 +100,12 @@ class AppLaunch(tank.Hook):
             # 환경변수에 시작 스크립트 경로 추가
             os.environ['UNREAL_PATH'] = startup_script
 
+            # app_args에 Python 스크립트 실행 명령 추가
+            if app_args:
+                app_args += f' -ExecutePythonScript="{startup_script}"'
+            else:
+                app_args = f'-ExecutePythonScript="{startup_script}"'
+
 
             self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
             self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
