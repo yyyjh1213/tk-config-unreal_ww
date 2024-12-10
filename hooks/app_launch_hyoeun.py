@@ -161,7 +161,7 @@ class AppLaunch(tank.Hook):
             # run the command to launch the app
             exit_code = os.system(cmd)
 
-            self.parent.log_debug("*"*20, "BEFORE LAUNCH")
+            self.parent.log_debug("****************** BEFORE LAUNCH")
             import make_custom_menus
             make_custom_menus.run()
 
