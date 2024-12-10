@@ -76,11 +76,17 @@ class AppLaunch(tank.Hook):
         else:
             self.parent.log_debug("No department found for user: %s" % user)
 
-        if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows': # 원진님이 추가한 부분
+
+        # 원진님이 추가한 부분
+        if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows':
             now_dir = os.path.dirname(os.path.abspath(__file__))
             packages = os.path.join(now_dir, 'packages', 'win')
 
             sys.path.append(packages)
+
+            for root, dirs, _ in os.walk(packages): # for문 효은이가 추가
+                for dir_name in dirs:
+                    sys.path.append(os.path.join(root, dir_name))
 
             external_paths = [
                 "external_path3",
@@ -133,8 +139,8 @@ class AppLaunch(tank.Hook):
 
 
         # make_custom_menus.py 실행
-        # import tk-multi-launchapp.make_custom_menus
-        # make_custom_menus.run()
+        import make_custom_menus
+        make_custom_menus.run()
 
 
 
