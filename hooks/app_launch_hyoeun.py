@@ -95,7 +95,8 @@ class AppLaunch(tank.Hook):
 
             # 실행할 Python 스크립트 경로 설정
             startup_script = os.path.join(now_dir, 'make_custom_menus.py')
-            
+            self.parent.log_debug(f"startup_script : {startup_script}")
+
             # 환경변수에 시작 스크립트 경로 추가
             os.environ['UNREAL_PATH'] = startup_script
 
@@ -104,6 +105,7 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
+            self.parent.log_debug("UNREAL_PATH: %s" % os.environ['UNREAL_PATH'])
 
 
         if depart_confirm:
