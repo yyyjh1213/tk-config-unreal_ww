@@ -20,7 +20,7 @@ import subprocess
 import platform
 import tank
 import shutil
-
+import psutil
 
 
 ENGINES = {
@@ -75,6 +75,7 @@ class AppLaunch(tank.Hook):
                 depart_confirm = True
         else:
             self.parent.log_debug("No department found for user: %s" % user)
+
 
         if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows':
             now_dir = os.path.dirname(os.path.abspath(__file__))
@@ -161,15 +162,31 @@ class AppLaunch(tank.Hook):
             # run the command to launch the app
             exit_code = os.system(cmd)
 
-            self.parent.log_debug("****************** BEFORE LAUNCH")
-            
-            # sys.path에 경로 추가
-            win_dir = os.path.abspath(os.path.dirname(__file__))
-            if win_dir not in sys.path:
-                sys.path.append(win_dir)
-            
-            import make_custom_menus
-            make_custom_menus.run()
+
+            # Wait for Unreal Engine to initialize and then import unreal
+            if engine_name == "tk-unreal" and exit_code == 0:
+                import time
+                import psutil
+
+                # Wait until Unreal process is running
+                unreal_started = False
+                for _ in range(10):  # Check for Unreal process up to 10 times (e.g., 10 seconds)
+                    for proc in psutil.process_iter(attrs=["name"]):
+                        if "UnrealEditor" in proc.info["name"]:  # Replace with the actual Unreal process name if needed
+                            unreal_started = True
+                            break
+                    if unreal_started:
+                        break
+                    time.sleep(1)
+
+                if unreal_started:
+                    try:
+                        import unreal
+                        self.parent.log_debug("Unreal Engine is running. Successfully imported 'unreal'.")
+                    except ImportError as e:
+                        self.parent.log_error(f"Failed to import unreal: {e}")
+                else:
+                    self.parent.log_error("Unreal Engine did not start within the expected time.")
 
             return {"command": cmd, "return_code": exit_code}
 
@@ -302,3 +319,12 @@ class WindowsAdapter(BaseAdapter):
     def get_rez_root_command():
 
         return 'rez-env rez -- echo %REZ_REZ_ROOT%'
+
+# # sys.path에 경로 추가
+# win_dir = os.path.abspath(os.path.dirname(__file__))
+# if win_dir not in sys.path:
+#     sys.path.append(win_dir)
+# self.parent.log_debug("****************** BEFORE LAUNCH")
+
+# import make_custom_menus
+# make_custom_menus.run()
