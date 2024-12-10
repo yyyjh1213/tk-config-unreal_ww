@@ -19,6 +19,7 @@ import sys
 import subprocess
 import platform
 import tank
+import shutil
 
 
 
@@ -57,6 +58,7 @@ class AppLaunch(tank.Hook):
         :returns: (dict) The two valid keys are 'command' (str) and 'return_code' (int).
         """
 
+
         system = platform.system()
 
         app_name = ENGINES[engine_name]
@@ -84,9 +86,9 @@ class AppLaunch(tank.Hook):
                 "external_path3",
                 packages
             ]
-            
+
             new_paths = os.pathsep.join(external_paths)
-            
+
             if 'UE_PYTHONPATH' in os.environ:
                 os.environ['UE_PYTHONPATH'] += os.pathsep + new_paths
             else:
@@ -96,6 +98,7 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
+
 
         if depart_confirm:
             
