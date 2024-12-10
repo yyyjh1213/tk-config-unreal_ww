@@ -63,8 +63,11 @@ def add_content_browser_menu():
     except Exception as e:
         unreal.log_error(f"Error adding menu: {str(e)}")
 
-# 메뉴 추가 실행
-# add_content_browser_menu()
 
 def run():
     print("R"*20, "작동 테스트")
+
+
+# 메뉴 추가 실행
+add_content_browser_menu()
+run()
