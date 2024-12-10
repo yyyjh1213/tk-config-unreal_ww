@@ -77,7 +77,7 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("No department found for user: %s" % user)
 
 
-        # 원진님이 추가한 부분
+        # 모듈 경로 추가
         if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows':
             now_dir = os.path.dirname(os.path.abspath(__file__)) # hooks 경로
             packages = os.path.join(now_dir, 'packages', 'win')
@@ -87,12 +87,11 @@ class AppLaunch(tank.Hook):
                 packages
             ]
 
-            for root, dirs, _ in os.walk(packages): # for문 효은이가 추가
-                for dir_name in dirs:
-                    path = os.path.join(root, dir_name)
-
-                    sys.path.append(path)
-                    external_paths.append(path)
+            # for root, dirs, _ in os.walk(packages): # for문 효은이가 추가
+            #     for dir_name in dirs:
+            #         path = os.path.join(root, dir_name)
+            #         sys.path.append(path)
+            #         external_paths.append(path)
 
             new_paths = os.pathsep.join(external_paths)
 
@@ -100,10 +99,6 @@ class AppLaunch(tank.Hook):
                 os.environ['UE_PYTHONPATH'] += os.pathsep + new_paths
             else:
                 os.environ['UE_PYTHONPATH'] = new_paths
-
-
-            # C:\Users\admin\AppData\Roaming\Shotgun\hg\p122c4.basic.desktop\cfg\install\core\python;external_path3
-            # C:\Users\admin\AppData\Roaming\Shotgun\bundle_cache\gitbranch\tk-config-unreal_ww.git\d57554d\hooks\packages\win
 
             self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
             self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
