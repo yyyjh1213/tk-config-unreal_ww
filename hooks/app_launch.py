@@ -133,8 +133,8 @@ class AppLaunch(tank.Hook):
 
 
         # make_custom_menus.py 실행
-        import make_custom_menus
-        make_custom_menus.run()
+        # import tk-multi-launchapp.make_custom_menus
+        # make_custom_menus.run()
 
 
 
