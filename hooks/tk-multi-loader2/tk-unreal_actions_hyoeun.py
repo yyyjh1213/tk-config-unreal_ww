@@ -260,12 +260,16 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
                 first_imported_object = object_path
 
 
-    # # packages/win 디렉토리 경로 설정
-    # win_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages/win"))
+    # packages/win 디렉토리 경로 설정
+    current_file_path = os.path.dirname(__file__)
+    print(f"current file path : {current_file_path}")
 
-    # # sys.path에 경로 추가
-    # if win_dir not in sys.path:
-    #     sys.path.append(win_dir)
+    win_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages/win"))
+    print(f"********** win_dir : {win_dir}")
+
+    # sys.path에 경로 추가
+    if win_dir not in sys.path:
+        sys.path.append(win_dir)
 
     import unreal_rename
     import save_all_assets
