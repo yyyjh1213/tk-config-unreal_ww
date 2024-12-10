@@ -76,8 +76,6 @@ class AppLaunch(tank.Hook):
         else:
             self.parent.log_debug("No department found for user: %s" % user)
 
-
-        # 패키지 경로 추가
         if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows':
             now_dir = os.path.dirname(os.path.abspath(__file__))
             packages = os.path.join(now_dir, 'packages', 'win')
@@ -100,16 +98,6 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
-
-
-        # Custom Template Menu (효은)
-        win_dir = os.path.abspath(os.path.dirname(__file__))
-        if win_dir not in sys.path:
-            sys.path.append(win_dir)
-
-        import make_custom_menus
-        make_custom_menus.add_content_browser_menu()
-        make_custom_menus.run()
 
 
         if depart_confirm:
