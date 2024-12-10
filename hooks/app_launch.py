@@ -82,24 +82,19 @@ class AppLaunch(tank.Hook):
             now_dir = os.path.dirname(os.path.abspath(__file__))
             packages = os.path.join(now_dir, 'packages', 'win')
 
-            sys.path.append(packages)
-
-            all_dirs = [packages, "external_path3"]
+            external_paths = [
+                "external_path3",
+                packages
+            ]
 
             for root, dirs, _ in os.walk(packages): # for문 효은이가 추가
                 for dir_name in dirs:
                     path = os.path.join(root, dir_name)
                     sys.path.append(path)
-                    all_dirs.append(path)
+                    external_paths.append(path)
 
-            # external_paths = [
-            #     "external_path3",
-            #     packages
-            # ]
-            
-            # new_paths = os.pathsep.join(external_paths)
-            new_paths = os.pathsep.join(all_dirs)
-            
+            new_paths = os.pathsep.join(external_paths)
+
             if 'UE_PYTHONPATH' in os.environ:
                 os.environ['UE_PYTHONPATH'] += os.pathsep + new_paths
             else:
