@@ -62,7 +62,7 @@ def add_content_browser_menu():
         unreal.log_error(f"Error adding menu: {str(e)}")
 
 # 메뉴 추가 실행
-add_content_browser_menu()
+# add_content_browser_menu()
 
 def run():
     print("&"*20, "작동 테스트")
