@@ -93,6 +93,13 @@ class AppLaunch(tank.Hook):
             else:
                 os.environ['UE_PYTHONPATH'] = new_paths
 
+            # 실행할 Python 스크립트 경로 설정
+            startup_script = os.path.join(now_dir, 'make_custom_menus.py')
+            
+            # 환경변수에 시작 스크립트 경로 추가
+            os.environ['UNREAL_PATH'] = startup_script
+
+
             self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
             self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
@@ -159,32 +166,6 @@ class AppLaunch(tank.Hook):
 
             # run the command to launch the app
             exit_code = os.system(cmd)
-
-
-            # Wait for Unreal Engine to initialize and then import unreal
-            if engine_name == "tk-unreal" and exit_code == 0:
-                import time
-                import psutil
-
-                # Wait until Unreal process is running
-                unreal_started = False
-                for _ in range(10):  # Check for Unreal process up to 10 times (e.g., 10 seconds)
-                    for proc in psutil.process_iter(attrs=["name"]):
-                        if "UnrealEditor" in proc.info["name"]:  # Replace with the actual Unreal process name if needed
-                            unreal_started = True
-                            break
-                    if unreal_started:
-                        break
-                    time.sleep(1)
-
-                if unreal_started:
-                    try:
-                        import unreal
-                        self.parent.log_debug("Unreal Engine is running. Successfully imported 'unreal'.")
-                    except ImportError as e:
-                        self.parent.log_error(f"Failed to import unreal: {e}")
-                else:
-                    self.parent.log_error("Unreal Engine did not start within the expected time.")
 
             return {"command": cmd, "return_code": exit_code}
 
