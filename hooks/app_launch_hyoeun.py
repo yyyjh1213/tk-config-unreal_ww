@@ -98,7 +98,7 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug(f"startup_script : {startup_script}")
 
             # 환경변수에 시작 스크립트 경로 추가
-            os.environ['UNREAL_PATH'] = startup_script
+            # os.environ['UNREAL_PATH'] = startup_script
 
             # app_args에 Python 스크립트 실행 명령 추가
             if app_args:
