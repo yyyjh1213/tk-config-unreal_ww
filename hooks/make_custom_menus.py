@@ -1,4 +1,4 @@
-import unreal
+# import unreal
 
 print("커스텀 메뉴를 만드는 모듈 임포트 완료!")
 
@@ -69,5 +69,5 @@ def run():
 
 
 # 메뉴 추가 실행
-add_content_browser_menu()
+# add_content_browser_menu()
 run()
