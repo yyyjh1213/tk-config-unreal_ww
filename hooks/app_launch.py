@@ -293,7 +293,7 @@ class WindowsAdapter(BaseAdapter):
 
     @staticmethod
     def get_command(path, args):
-        return 'start /B "App" "{path}" {args}'.format(path=path, args=args)
+        return 'start /B "App" "{path}" {args} -NoLoadStartupDialog'.format(path=path, args=args)
 
     @staticmethod
     def get_rez_root_command():
