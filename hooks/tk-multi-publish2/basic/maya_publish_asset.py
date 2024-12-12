@@ -196,8 +196,7 @@ class MayaAssetPublishPlugin(HookBaseClass):
             "created_by": publisher.context.user,
             "user": publisher.context.user,
             "sg_status_list": "rev",
-            "sg_path_to_frames": publish_path,
-            "version_number": publish_version
+            "sg_path_to_frames": publish_path
         }
         
         # Create the version in Shotgun
