@@ -76,7 +76,7 @@ class MayaAssetPublishPlugin(HookBaseClass):
 
         # Get the path in a normalized state. No trailing separator, separators are
         # appropriate for current os, no double separators, etc.
-        path = sgtk.util.ShotgunPath.normalize(path)
+        path = os.path.normpath(path)
 
         # Ensure the session is saved
         _save_session(path)
@@ -129,7 +129,13 @@ def _session_path():
     """
     path = cmds.file(query=True, sn=True)
 
-    if path is not None:
-        path = six.ensure_str(path)
+    if isinstance(path, bytes):
+        path = path.decode('utf-8')
+    elif path is None:
+        path = ''
 
     return path
+
+def _save_session(path):
+    # Ensure the session is saved
+    cmds.file(save=True, force=True)
