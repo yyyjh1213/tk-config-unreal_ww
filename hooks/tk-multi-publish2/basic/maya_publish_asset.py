@@ -115,8 +115,12 @@ class MayaAssetPublishPlugin(HookBaseClass):
         path = _session_path()
         path = os.path.normpath(path)
 
+        # Get settings values - need to get the actual value from the PluginSetting object
         publish_template = settings.get("Publish Template")
+        publish_template = publish_template.value if hasattr(publish_template, "value") else publish_template
+        
         publish_folder = settings.get("Publish Folder")
+        publish_folder = publish_folder.value if hasattr(publish_folder, "value") else publish_folder
 
         if publish_template:
             publisher = self.parent
