@@ -152,8 +152,10 @@ class MayaAssetPublishPlugin(HookBaseClass):
                 fields = work_template.get_fields(path)
             
             # Add context fields
-            fields["Step"] = publisher.context.step["name"]
-            fields["name"] = publisher.context.task["name"]
+            step_name = publisher.context.step.get("name", "step") if publisher.context.step else "step"
+            task_name = publisher.context.task.get("name", "task") if publisher.context.task else "task"
+            fields["Step"] = step_name
+            fields["name"] = task_name
             
             # Get the version number from the work file
             if "version" not in fields:
@@ -173,8 +175,8 @@ class MayaAssetPublishPlugin(HookBaseClass):
         elif publish_folder:
             # Use publish folder with context-based filename
             basename = "%s.%s.v%03d" % (
-                publisher.context.task["name"],
-                publisher.context.step["name"],
+                publisher.context.task.get("name", "task") if publisher.context.task else "task",
+                publisher.context.step.get("name", "step") if publisher.context.step else "step",
                 publisher.util.get_version_number(path)
             )
             publish_path = os.path.join(publish_folder, basename + ".fbx")
@@ -184,8 +186,8 @@ class MayaAssetPublishPlugin(HookBaseClass):
             # Use the same path but with context-based filename
             directory = os.path.dirname(path)
             basename = "%s.%s.v%03d" % (
-                publisher.context.task["name"],
-                publisher.context.step["name"],
+                publisher.context.task.get("name", "task") if publisher.context.task else "task",
+                publisher.context.step.get("name", "step") if publisher.context.step else "step",
                 publisher.util.get_version_number(path)
             )
             publish_path = os.path.join(directory, basename + ".fbx")
@@ -226,14 +228,18 @@ class MayaAssetPublishPlugin(HookBaseClass):
         work_template = item.properties.get("work_template")
         fields = {}
         
+        # Get context information safely
+        step_name = publisher.context.step.get("name", "step") if publisher.context.step else "step"
+        task_name = publisher.context.task.get("name", "task") if publisher.context.task else "task"
+        
         if work_template:
             path = item.properties.get("path")
             if path:
                 fields = work_template.get_fields(path)
                 
                 # Add context fields
-                fields["Step"] = publisher.context.step["name"]
-                fields["name"] = publisher.context.task["name"]
+                fields["Step"] = step_name
+                fields["name"] = task_name
                 
                 # Get the version number from the work file
                 if "version" not in fields:
@@ -241,16 +247,16 @@ class MayaAssetPublishPlugin(HookBaseClass):
         else:
             # No work template, try to get fields from context
             fields = {
-                "Step": publisher.context.step["name"],
-                "name": publisher.context.task["name"],
+                "Step": step_name,
+                "name": task_name,
                 "version": publisher.util.get_version_number(item.properties.get("path", ""))
             }
 
         # Build publish name with context information
         publish_name = "%s_%s_v%03d" % (
-            fields["name"],
-            fields["Step"],
-            fields["version"]
+            fields.get("name", task_name),
+            fields.get("Step", step_name),
+            fields.get("version", 1)
         )
         
         # Populate the version data to register
@@ -296,7 +302,7 @@ class MayaAssetPublishPlugin(HookBaseClass):
             "path": publish_path,
             "name": publish_name,
             "created_by": publisher.context.user,
-            "version_number": fields["version"],
+            "version_number": fields.get("version", 1),
             "published_file_type": publish_type,
             "version_entity": version
         }
