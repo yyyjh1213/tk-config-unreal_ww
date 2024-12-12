@@ -253,8 +253,8 @@ class MayaAssetPublishPlugin(HookBaseClass):
             mel.eval('FBXResetExport')
             
             # FBX export settings
-            mel.eval('FBXExportFileVersion -v FBX202000')  # 최신 FBX 버전 사용
-            mel.eval('FBXExportUpAxis -v y')  # Y-up axis
+            mel.eval('FBXExportFileVersion "FBX202000"')  # 최신 FBX 버전 사용
+            mel.eval('FBXExportUpAxis y')  # Y-up axis
             mel.eval('FBXExportShapes -v true')
             mel.eval('FBXExportSmoothingGroups -v true')
             mel.eval('FBXExportSmoothMesh -v true')
