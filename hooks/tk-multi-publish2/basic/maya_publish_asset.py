@@ -96,6 +96,93 @@ class MayaAssetPublishPlugin(HookBaseClass):
 
         return True
 
+    def _get_publish_path(self, settings, item):
+        """
+        Get the path where the plugin will publish the asset.
+        """
+        # Get the path in a normalized state
+        path = _session_path()
+        path = os.path.normpath(path)
+
+        publish_template = settings.get("Publish Template")
+        publish_folder = settings.get("Publish Folder")
+
+        if publish_template:
+            publisher = self.parent
+            fields = {}
+            
+            # Get fields from the current session path
+            work_template = publisher.sgtk.template_from_path(path)
+            if work_template:
+                fields = work_template.get_fields(path)
+            
+            # Apply fields to publish template
+            publish_template = publisher.sgtk.templates.get(publish_template)
+            if not publish_template:
+                raise Exception("Publish template '%s' not found!" % publish_template)
+            
+            return publish_template.apply_fields(fields)
+        
+        elif publish_folder:
+            # Use publish folder with the same filename
+            filename = os.path.basename(path)
+            basename, ext = os.path.splitext(filename)
+            publish_path = os.path.join(publish_folder, basename + ".fbx")
+            return publish_path
+        
+        else:
+            # Use the same path but change extension to .fbx
+            basename, ext = os.path.splitext(path)
+            publish_path = basename + ".fbx"
+            return publish_path
+
+    def _register_publish(self, settings, item, publish_path):
+        """
+        Register the publish with Shotgun
+        """
+        publisher = self.parent
+        
+        # Get the publish info
+        publish_version = publisher.util.get_version_number(publish_path)
+        publish_name = publisher.util.get_publish_name(publish_path)
+        
+        # Populate the version data to register
+        version_data = {
+            "created_by": publisher.context.user,
+            "description": item.description,
+            "entity": publisher.context.entity,
+            "name": publish_name,
+            "project": publisher.context.project,
+            "version_number": publish_version,
+            "task": publisher.context.task
+        }
+        
+        # Create the version in Shotgun
+        try:
+            version = publisher.shotgun.create("Version", version_data)
+            self.logger.info("Created version in Shotgun: %s" % version)
+        except Exception as e:
+            self.logger.error("Failed to create version in Shotgun: %s" % e)
+            raise
+
+        # Register the file with Shotgun
+        publish_data = {
+            "tk": publisher.sgtk,
+            "context": publisher.context,
+            "comment": item.description,
+            "path": publish_path,
+            "name": publish_name,
+            "version_number": publish_version,
+            "published_file_type": "Maya Scene"
+        }
+        
+        try:
+            publisher.util.register_publish(**publish_data)
+            self.logger.info("Published file registered in Shotgun: %s" % publish_path)
+        except Exception as e:
+            self.logger.error("Failed to register publish in Shotgun: %s" % e)
+            raise
+
     def _maya_export_fbx(self, publish_path):
         """FBX 내보내기 최적화 설정"""
         # Select all meshes
