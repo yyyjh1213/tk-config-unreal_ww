@@ -92,12 +92,15 @@ class MayaAssetPublishPlugin(HookBaseClass):
         return True
 
     def publish(self, settings, item):
-        publisher = self.parent
-        path = _session_path()
+        """
+        Executes the publish logic for the given item and settings.
 
-        # Get the path in a normalized state. No trailing separator, separators are
-        # appropriate for current os, no double separators, etc.
-        path = os.path.normpath(path)
+        :param settings: Dictionary of Settings. The keys are strings, matching
+            the keys returned in the settings property. The values are `Setting`
+            instances.
+        :param item: Item to process
+        """
+        publisher = self.parent
 
         # Ensure the session is saved
         _save_session()
@@ -117,8 +120,34 @@ class MayaAssetPublishPlugin(HookBaseClass):
             # Export the FBX
             self._maya_export_fbx(publish_path)
             
-            # Register the publish
-            self._register_publish(settings, item, publish_path)
+            # Get context information safely
+            step_name = publisher.context.step.get("name", "step") if publisher.context.step else "step"
+            task_name = publisher.context.task.get("name", "task") if publisher.context.task else "task"
+
+            # Get version number safely
+            try:
+                if hasattr(item.properties, "publish_version"):
+                    version_number = item.properties.publish_version
+                else:
+                    # Try to extract version from publish_path
+                    import re
+                    version_pattern = re.compile(r"v(\d+)", re.IGNORECASE)
+                    match = version_pattern.search(publish_path)
+                    if match:
+                        version_number = int(match.group(1))
+                    else:
+                        version_number = 1
+            except:
+                version_number = 1
+
+            # Set the required properties on the item for base class to register
+            item.properties.path = publish_path
+            item.properties.publish_version = version_number
+            item.properties.publish_name = "%s_%s_v%03d" % (task_name, step_name, version_number)
+            item.properties.publish_type = "FBX File"
+            
+            # Let the base class register the publish
+            super(MayaAssetPublishPlugin, self).publish(settings, item)
             
             self.logger.info("Publish completed successfully")
             return True
@@ -217,62 +246,6 @@ class MayaAssetPublishPlugin(HookBaseClass):
             new_basename = "%s_v001" % basename
             
         return os.path.join(directory, new_basename + ext)
-
-    def _register_publish(self, settings, item, publish_path):
-        """
-        Register the publish with Shotgun
-        """
-        publisher = self.parent
-
-        # Get context information safely
-        step_name = publisher.context.step.get("name", "step") if publisher.context.step else "step"
-        task_name = publisher.context.task.get("name", "task") if publisher.context.task else "task"
-
-        # Get version number safely
-        try:
-            if hasattr(item.properties, "publish_version"):
-                version_number = item.properties.publish_version
-            else:
-                # Try to extract version from publish_path
-                import re
-                version_pattern = re.compile(r"v(\d+)", re.IGNORECASE)
-                match = version_pattern.search(publish_path)
-                if match:
-                    version_number = int(match.group(1))
-                else:
-                    version_number = 1
-        except:
-            version_number = 1
-
-        # Build publish name with context information
-        publish_name = "%s_%s_v%03d" % (
-            task_name,
-            step_name,
-            version_number
-        )
-
-        # Get the publish type from plugin settings
-        publish_type = None
-        for type_spec in settings["File Types"].value:
-            if type_spec[0] == "Maya Scene":
-                for ext in type_spec[1:]:
-                    if publish_path.lower().endswith(".%s" % ext):
-                        publish_type = type_spec[0]
-                        break
-            if publish_type:
-                break
-
-        if not publish_type:
-            publish_type = "Maya Scene"
-
-        # Set the required properties on the item for base class to register
-        item.properties.path = publish_path
-        item.properties.publish_version = version_number
-        item.properties.publish_name = publish_name
-        item.properties.publish_type = publish_type
-        
-        # Let the base class register the publish
-        super(MayaAssetPublishPlugin, self)._register_publish(settings, item)
 
     def _maya_export_fbx(self, publish_path):
         """FBX 내보내기 최적화 설정"""
