@@ -227,8 +227,8 @@ class MayaAssetPublishPlugin(HookBaseClass):
             raise
 
         try:
-            # Call the parent's _save_to_flow_production_tracking method
-            super(MayaAssetPublishPlugin, self)._save_to_flow_production_tracking(
+            # Call the parent's _save_to_shotgun method
+            super(MayaAssetPublishPlugin, self)._save_to_shotgun(
                 item,
                 publish_path,
                 version,  # Link to the version we just created
