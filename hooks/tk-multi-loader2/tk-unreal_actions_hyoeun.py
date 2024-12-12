@@ -11,7 +11,6 @@ import sys
 import sgtk
 import unreal
 import re
-import configparser
 
 HookBaseClass = sgtk.get_hook_baseclass()
 
@@ -283,7 +282,7 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     materials=True,
     textures=True,
     as_skeletal=False,
-    import_animations=False  # 애니메이션 import 옵션 추가
+    import_animations=True  # 애니메이션 import 옵션 추가
 ):
     """
     Create and configure an Unreal AssetImportTask
@@ -316,14 +315,13 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     task.options.import_as_skeletal = as_skeletal
     # task.options.static_mesh_import_data.combine_meshes = True
 
-    # 애니메이션 import 옵션 추가
-    if import_animations:
-        print("")
-        task.options.import_animations = True
-        task.options.animation_length = unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME  # 또는 FBXALIT_ALL_FRAMES
-        task.options.import_custom_attribute = True  # 커스텀 애니메이션 어트리뷰트 import
+    # # 애니메이션 import 옵션 추가
+    # if import_animations:
+    #     task.options.import_animations = True
+    #     task.options.animation_length = unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME  # 또는 FBXALIT_ALL_FRAMES
+    #     task.options.import_custom_attribute = True  # 커스텀 애니메이션 어트리뷰트 import
         
-        # 필요한 경우 추가 애니메이션 옵션 설정
+        # 애니메이션 옵션 설정
         # task.options.frames_per_second = 30.0  # FPS 설정
         # task.options.import_bone_tracks = True  # 본 트랙 import
         # task.options.preserve_local_transform = True  # 로컬 트랜스폼 유지
