@@ -282,7 +282,7 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     materials=True,
     textures=True,
     as_skeletal=False,
-    import_animations=True  # 애니메이션 import 옵션 추가
+    # import_animations=True  # 애니메이션 import 옵션 추가
 ):
     """
     Create and configure an Unreal AssetImportTask
@@ -313,18 +313,18 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     task.options.import_materials = materials
     task.options.import_textures = textures
     task.options.import_as_skeletal = as_skeletal
-    # task.options.static_mesh_import_data.combine_meshes = True
+    task.options.static_mesh_import_data.combine_meshes = True
 
-    # # 애니메이션 import 옵션 추가
-    # if import_animations:
-    #     task.options.import_animations = True
-    #     task.options.animation_length = unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME  # 또는 FBXALIT_ALL_FRAMES
-    #     task.options.import_custom_attribute = True  # 커스텀 애니메이션 어트리뷰트 import
-        
-        # 애니메이션 옵션 설정
-        # task.options.frames_per_second = 30.0  # FPS 설정
-        # task.options.import_bone_tracks = True  # 본 트랙 import
-        # task.options.preserve_local_transform = True  # 로컬 트랜스폼 유지
+    # 애니메이션 임포트 옵션 설정
+    task.options.skeletal_mesh_import_data.import_animations = True
+    task.options.skeletal_mesh_import_data.animation_length = unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME
+    task.options.skeletal_mesh_import_data.import_animation = True
+
+    # 추가적인 애니메이션 옵션들
+    task.options.skeletal_mesh_import_data.use_default_sample_rate = False
+    task.options.skeletal_mesh_import_data.custom_sample_rate = 30  # 원하는 샘플레이트 설정
+    task.options.skeletal_mesh_import_data.import_custom_attribute = True
+    task.options.skeletal_mesh_import_data.preserve_smoothing_groups = True
 
     # 메시 유형 설정
     task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_STATIC_MESH
