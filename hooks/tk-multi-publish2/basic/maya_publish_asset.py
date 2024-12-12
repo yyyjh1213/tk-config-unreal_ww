@@ -216,20 +216,21 @@ class MayaAssetPublishPlugin(HookBaseClass):
             self.logger.error("Failed to create version in Shotgun: %s" % e)
             raise
 
-        # Register the file with Shotgun using register_publish_v2
+        # Register the file with Shotgun using register_publish
         publish_data = {
-            "item": item,
+            "tk": publisher.sgtk,
+            "context": publisher.context,
             "path": publish_path,
             "name": publish_name,
+            "created_by": publisher.context.user,
             "version_number": publish_version,
             "published_file_type": "FBX File",
-            "version_entity": version,
-            "dependency_paths": [],
+            "version": version,  # Link to the version we just created
             "description": item.description
         }
         
         try:
-            publisher.util.register_publish_v2(**publish_data)
+            publisher.util.register_publish(**publish_data)
             self.logger.info("Published file registered in Shotgun: %s" % publish_path)
         except Exception as e:
             self.logger.error("Failed to register publish in Shotgun: %s" % e)
