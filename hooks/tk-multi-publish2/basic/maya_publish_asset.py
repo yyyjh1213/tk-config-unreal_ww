@@ -4,11 +4,21 @@ import sys
 import maya.cmds as cmds
 import maya.mel as mel
 
-HookBaseClass = tank.get_hook_baseclass()
+# 기본 publish 플러그인을 상속받기 위해 sgtk를 import
+import sgtk
+
+# 기본 publish 플러그인을 상속
+HookBaseClass = sgtk.get_hook_baseclass()
 
 class MayaAssetPublishPlugin(HookBaseClass):
     """
     Plugin for publishing a Maya asset.
+    
+    This hook relies on functionality found in the base file publisher hook in
+    the publish2 app and should inherit from it in the configuration. The hook
+    setting for this plugin should look something like this::
+
+        hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/maya_publish_asset.py"
     """
 
     @property
