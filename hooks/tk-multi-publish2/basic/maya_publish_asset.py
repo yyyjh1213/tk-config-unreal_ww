@@ -227,21 +227,23 @@ class MayaAssetPublishPlugin(HookBaseClass):
         fields = {}
         
         if work_template:
-            fields = work_template.get_fields(item.properties.path)
-            
-            # Add context fields
-            fields["Step"] = publisher.context.step["name"]
-            fields["name"] = publisher.context.task["name"]
-            
-            # Get the version number from the work file
-            if "version" not in fields:
-                fields["version"] = publisher.util.get_version_number(item.properties.path)
+            path = item.properties.get("path")
+            if path:
+                fields = work_template.get_fields(path)
+                
+                # Add context fields
+                fields["Step"] = publisher.context.step["name"]
+                fields["name"] = publisher.context.task["name"]
+                
+                # Get the version number from the work file
+                if "version" not in fields:
+                    fields["version"] = publisher.util.get_version_number(path)
         else:
             # No work template, try to get fields from context
             fields = {
                 "Step": publisher.context.step["name"],
                 "name": publisher.context.task["name"],
-                "version": publisher.util.get_version_number(item.properties.path)
+                "version": publisher.util.get_version_number(item.properties.get("path", ""))
             }
 
         # Build publish name with context information
