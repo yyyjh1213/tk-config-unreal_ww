@@ -286,7 +286,7 @@ class MayaAssetPublishPlugin(HookBaseClass):
         if not publish_type:
             publish_type = "Maya Scene"
 
-        # Register the publish using sgtk.util.register_publish
+        # Register the publish using publisher.register_publish
         publish_data = {
             "tk": publisher.sgtk,
             "context": publisher.context,
@@ -300,8 +300,7 @@ class MayaAssetPublishPlugin(HookBaseClass):
         }
 
         try:
-            sgtk = publisher.sgtk
-            sgtk.util.register_publish(**publish_data)
+            publisher.register_publish(**publish_data)
             self.logger.info("Published file registered in Shotgun: %s" % publish_path)
         except Exception as e:
             self.logger.error("Failed to register publish in Shotgun: %s" % e)
