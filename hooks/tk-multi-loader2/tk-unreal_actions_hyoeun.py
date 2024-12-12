@@ -317,7 +317,7 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
 
     # 애니메이션 임포트 옵션 설정
     # task.options.skeletal_mesh_import_data.import_animations = True
-    task.options.skeletal_mesh_import_data.animation_length = unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME
+    # task.options.skeletal_mesh_import_data.animation_length = unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME
     task.options.skeletal_mesh_import_data.import_animation = True
 
     # 추가적인 애니메이션 옵션들
