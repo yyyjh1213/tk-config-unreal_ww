@@ -90,22 +90,31 @@ class MayaAssetPublishPlugin(HookBaseClass):
         path = os.path.normpath(path)
 
         # Ensure the session is saved
-        _save_session(path)
+        _save_session()
 
-        # Get the publish path
+        # Get the publish path from item properties (set during validate)
         publish_path = item.properties.get("publish_path")
+        if not publish_path:
+            error_msg = "Publish path not found in item properties."
+            self.logger.error(error_msg)
+            raise Exception(error_msg)
         
         # Ensure the publish folder exists
         publish_folder = os.path.dirname(publish_path)
         self.parent.ensure_folder_exists(publish_folder)
         
-        # Export the FBX
-        self._maya_export_fbx(publish_path)
-
-        # Register the publish
-        self._register_publish(settings, item, publish_path)
-
-        return True
+        try:
+            # Export the FBX
+            self._maya_export_fbx(publish_path)
+            
+            # Register the publish
+            self._register_publish(settings, item, publish_path)
+            
+            self.logger.info("Publish completed successfully")
+            return True
+        except Exception as e:
+            self.logger.error("Failed to publish: %s" % e)
+            raise
 
     def _get_publish_path(self, settings, item):
         """
@@ -207,19 +216,20 @@ class MayaAssetPublishPlugin(HookBaseClass):
             self.logger.error("Failed to create version in Shotgun: %s" % e)
             raise
 
-        # Register the file with Shotgun
+        # Register the file with Shotgun using register_publish_v2
         publish_data = {
-            "tk": publisher.sgtk,
-            "context": publisher.context,
-            "comment": item.description,
+            "item": item,
             "path": publish_path,
             "name": publish_name,
             "version_number": publish_version,
-            "published_file_type": "FBX File"
+            "published_file_type": "FBX File",
+            "version_entity": version,
+            "dependency_paths": [],
+            "description": item.description
         }
         
         try:
-            publisher.util.register_publish(**publish_data)
+            publisher.util.register_publish_v2(**publish_data)
             self.logger.info("Published file registered in Shotgun: %s" % publish_path)
         except Exception as e:
             self.logger.error("Failed to register publish in Shotgun: %s" % e)
@@ -227,34 +237,50 @@ class MayaAssetPublishPlugin(HookBaseClass):
 
     def _maya_export_fbx(self, publish_path):
         """FBX 내보내기 최적화 설정"""
-        # Select all meshes
-        all_meshes = cmds.ls(type="mesh", long=True)
-        if not all_meshes:
-            raise Exception("No meshes found in the scene")
-        
-        # Get the transform nodes of the meshes
-        transform_nodes = [cmds.listRelatives(mesh, parent=True, fullPath=True)[0] for mesh in all_meshes]
-        
-        # Select the transform nodes
-        cmds.select(transform_nodes, replace=True)
-        
-        # FBX export settings
-        mel.eval('FBXExportSmoothingGroups -v true')
-        mel.eval('FBXExportHardEdges -v false')
-        mel.eval('FBXExportTangents -v false')
-        mel.eval('FBXExportSmoothMesh -v true')
-        mel.eval('FBXExportInstances -v false')
-        mel.eval('FBXExportReferencedAssetsContent -v false')
-        mel.eval('FBXExportAnimationOnly -v false')
-        mel.eval('FBXExportBakeComplexAnimation -v false')
-        
-        # Save the FBX
-        mel.eval('FBXExport -f "%s" -s' % publish_path.replace("\\", "/"))
+        try:
+            # Select all meshes
+            all_meshes = cmds.ls(type="mesh", long=True)
+            if not all_meshes:
+                raise Exception("No meshes found in the scene")
+            
+            # Get the transform nodes of the meshes
+            transform_nodes = [cmds.listRelatives(mesh, parent=True, fullPath=True)[0] for mesh in all_meshes]
+            
+            # Select the transform nodes
+            cmds.select(transform_nodes, replace=True)
+            
+            # Reset FBX export options to default
+            mel.eval('FBXResetExport')
+            
+            # FBX export settings
+            mel.eval('FBXExportFileVersion -v FBX202000')  # 최신 FBX 버전 사용
+            mel.eval('FBXExportUpAxis -v y')  # Y-up axis
+            mel.eval('FBXExportShapes -v true')
+            mel.eval('FBXExportSmoothingGroups -v true')
+            mel.eval('FBXExportSmoothMesh -v true')
+            mel.eval('FBXExportTangents -v true')  # 탄젠트 포함
+            mel.eval('FBXExportInstances -v false')
+            mel.eval('FBXExportReferencedAssetsContent -v false')
+            mel.eval('FBXExportAnimationOnly -v false')
+            mel.eval('FBXExportBakeComplexAnimation -v false')
+            mel.eval('FBXExportConstraints -v false')
+            mel.eval('FBXExportLights -v false')
+            mel.eval('FBXExportCameras -v false')
+            mel.eval('FBXExportEmbeddedTextures -v false')
+            mel.eval('FBXExportInputConnections -v false')
+            
+            # Save the FBX
+            mel.eval('FBXExport -f "%s" -s' % publish_path.replace("\\", "/"))
+            
+            self.logger.info("FBX exported successfully to: %s" % publish_path)
+        except Exception as e:
+            self.logger.error("Failed to export FBX: %s" % e)
+            raise
 
 def _session_path():
     """
     Return the path to the current session
-    :return:
+    :return: str: The current session path
     """
     path = cmds.file(query=True, sn=True)
 
@@ -265,8 +291,11 @@ def _session_path():
 
     return path
 
-def _save_session(path):
+def _save_session():
     """
     Save the current session
     """
-    cmds.file(save=True, force=True)
+    try:
+        cmds.file(save=True, force=True)
+    except Exception as e:
+        raise Exception("Failed to save session: %s" % e)
