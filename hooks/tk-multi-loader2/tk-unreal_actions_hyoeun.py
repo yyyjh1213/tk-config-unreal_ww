@@ -318,13 +318,13 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     # 애니메이션 임포트 옵션 설정
     # task.options.skeletal_mesh_import_data.import_animations = True
     # task.options.skeletal_mesh_import_data.animation_length = unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME
-    task.options.skeletal_mesh_import_data.import_animation = True
+    # task.options.skeletal_mesh_import_data.import_animation = True
 
-    # 추가적인 애니메이션 옵션들
-    task.options.skeletal_mesh_import_data.use_default_sample_rate = False
-    task.options.skeletal_mesh_import_data.custom_sample_rate = 30  # 원하는 샘플레이트 설정
-    task.options.skeletal_mesh_import_data.import_custom_attribute = True
-    task.options.skeletal_mesh_import_data.preserve_smoothing_groups = True
+    # # 추가적인 애니메이션 옵션들
+    # task.options.skeletal_mesh_import_data.use_default_sample_rate = False
+    # task.options.skeletal_mesh_import_data.custom_sample_rate = 30  # 원하는 샘플레이트 설정
+    # task.options.skeletal_mesh_import_data.import_custom_attribute = True
+    # task.options.skeletal_mesh_import_data.preserve_smoothing_groups = True
 
     # 메시 유형 설정
     task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_STATIC_MESH
