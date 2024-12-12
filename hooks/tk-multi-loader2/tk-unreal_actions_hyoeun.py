@@ -329,6 +329,6 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_STATIC_MESH
     if as_skeletal:
         task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_SKELETAL_MESH
-        task.options.mesh_type_to_import = unreal.FBXIMportType.FBXIT_ANIMATION
+        task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_ANIMATION
 
     return task
