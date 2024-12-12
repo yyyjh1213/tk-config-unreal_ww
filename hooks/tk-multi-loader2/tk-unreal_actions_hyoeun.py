@@ -265,6 +265,7 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
     if win_dir not in sys.path:
         sys.path.append(win_dir)
 
+    # 모듈 실행
     import unreal_rename
     import save_all_assets
     save_all_assets.save_all_unsaved_assets()
@@ -314,6 +315,8 @@ def _generate_fbx_import_task( # Unreal의 AssetImportTask 객체 구성, import
     task.options.import_textures = textures
     task.options.import_as_skeletal = as_skeletal
     # task.options.static_mesh_import_data.combine_meshes = True
+
+    # 애니메이션 import 옵션 추가
     if import_animations:
         print("")
         task.options.import_animations = True
