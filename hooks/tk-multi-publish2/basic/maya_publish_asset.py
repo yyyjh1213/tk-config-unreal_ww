@@ -137,5 +137,7 @@ def _session_path():
     return path
 
 def _save_session(path):
-    # Ensure the session is saved
+    """
+    Save the current session
+    """
     cmds.file(save=True, force=True)
