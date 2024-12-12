@@ -226,21 +226,13 @@ class MayaAssetPublishPlugin(HookBaseClass):
             self.logger.error("Failed to create version in Shotgun: %s" % e)
             raise
 
-        # Register the file with Shotgun using register_publish
-        publish_data = {
-            "tk": publisher.sgtk,
-            "context": publisher.context,
-            "path": publish_path,
-            "name": publish_name,
-            "created_by": publisher.context.user,
-            "version_number": publish_version,
-            "published_file_type": "FBX File",
-            "version": version,  # Link to the version we just created
-            "description": item.description
-        }
-        
         try:
-            publisher.util.register_publish(**publish_data)
+            # Call the parent's _save_to_flow_production_tracking method
+            super(MayaAssetPublishPlugin, self)._save_to_flow_production_tracking(
+                item,
+                publish_path,
+                version,  # Link to the version we just created
+            )
             self.logger.info("Published file registered in Shotgun: %s" % publish_path)
         except Exception as e:
             self.logger.error("Failed to register publish in Shotgun: %s" % e)
