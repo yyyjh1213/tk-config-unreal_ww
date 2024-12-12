@@ -250,27 +250,6 @@ class MayaAssetPublishPlugin(HookBaseClass):
             step_name,
             version_number
         )
-        
-        # Populate the version data to register
-        version_data = {
-            "project": publisher.context.project,
-            "code": publish_name,
-            "description": item.description,
-            "entity": publisher.context.entity,
-            "sg_task": publisher.context.task,
-            "created_by": publisher.context.user,
-            "user": publisher.context.user,
-            "sg_status_list": "rev",
-            "sg_path_to_frames": publish_path
-        }
-        
-        # Create the version in Shotgun
-        try:
-            version = publisher.shotgun.create("Version", version_data)
-            self.logger.info("Created version in Shotgun: %s" % version)
-        except Exception as e:
-            self.logger.error("Failed to create version in Shotgun: %s" % e)
-            raise
 
         # Get the publish type from plugin settings
         publish_type = None
@@ -286,25 +265,14 @@ class MayaAssetPublishPlugin(HookBaseClass):
         if not publish_type:
             publish_type = "Maya Scene"
 
-        # Register the publish using publisher.register_publish
-        publish_data = {
-            "tk": publisher.sgtk,
-            "context": publisher.context,
-            "comment": item.description,
-            "path": publish_path,
-            "name": publish_name,
-            "created_by": publisher.context.user,
-            "version_number": version_number,
-            "published_file_type": publish_type,
-            "version_entity": version
-        }
-
-        try:
-            publisher.register_publish(**publish_data)
-            self.logger.info("Published file registered in Shotgun: %s" % publish_path)
-        except Exception as e:
-            self.logger.error("Failed to register publish in Shotgun: %s" % e)
-            raise
+        # Set the required properties on the item for base class to register
+        item.properties.path = publish_path
+        item.properties.publish_version = version_number
+        item.properties.publish_name = publish_name
+        item.properties.publish_type = publish_type
+        
+        # Let the base class register the publish
+        super(MayaAssetPublishPlugin, self)._register_publish(settings, item)
 
     def _maya_export_fbx(self, publish_path):
         """FBX 내보내기 최적화 설정"""
