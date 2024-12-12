@@ -130,11 +130,13 @@ class MayaAssetPublishPlugin(HookBaseClass):
         """
         Get the path where the plugin will publish the asset.
         """
+        publisher = self.parent
+
         # Get the path in a normalized state
         path = _session_path()
         path = os.path.normpath(path)
 
-        # Get settings values - need to get the actual value from the PluginSetting object
+        # Get settings values
         publish_template = settings.get("Publish Template")
         publish_template = publish_template.value if hasattr(publish_template, "value") else publish_template
         
@@ -142,32 +144,51 @@ class MayaAssetPublishPlugin(HookBaseClass):
         publish_folder = publish_folder.value if hasattr(publish_folder, "value") else publish_folder
 
         if publish_template:
-            publisher = self.parent
-            fields = {}
-            
             # Get fields from the current session path
             work_template = publisher.sgtk.template_from_path(path)
+            fields = {}
+            
             if work_template:
                 fields = work_template.get_fields(path)
+            
+            # Add context fields
+            fields["Step"] = publisher.context.step["name"]
+            fields["name"] = publisher.context.task["name"]
+            
+            # Get the version number from the work file
+            if "version" not in fields:
+                fields["version"] = publisher.util.get_version_number(path)
             
             # Apply fields to publish template
             publish_template = publisher.sgtk.templates.get(publish_template)
             if not publish_template:
                 raise Exception("Publish template '%s' not found!" % publish_template)
             
+            missing_keys = publish_template.missing_keys(fields)
+            if missing_keys:
+                raise Exception("Missing required fields for publish template: %s" % missing_keys)
+            
             return publish_template.apply_fields(fields)
         
         elif publish_folder:
-            # Use publish folder with the same filename
-            filename = os.path.basename(path)
-            basename, ext = os.path.splitext(filename)
+            # Use publish folder with context-based filename
+            basename = "%s.%s.v%03d" % (
+                publisher.context.task["name"],
+                publisher.context.step["name"],
+                publisher.util.get_version_number(path)
+            )
             publish_path = os.path.join(publish_folder, basename + ".fbx")
             return publish_path
         
         else:
-            # Use the same path but change extension to .fbx
-            basename, ext = os.path.splitext(path)
-            publish_path = basename + ".fbx"
+            # Use the same path but with context-based filename
+            directory = os.path.dirname(path)
+            basename = "%s.%s.v%03d" % (
+                publisher.context.task["name"],
+                publisher.context.step["name"],
+                publisher.util.get_version_number(path)
+            )
+            publish_path = os.path.join(directory, basename + ".fbx")
             return publish_path
 
     def _get_next_version_path(self, path):
@@ -203,7 +224,13 @@ class MayaAssetPublishPlugin(HookBaseClass):
         
         # Get the publish info
         publish_version = publisher.util.get_version_number(publish_path)
-        publish_name = publisher.util.get_publish_name(publish_path)
+        
+        # Build publish name with context information
+        publish_name = "%s_%s_v%03d" % (
+            publisher.context.task["name"],
+            publisher.context.step["name"],
+            publish_version
+        )
         
         # Populate the version data to register
         version_data = {
