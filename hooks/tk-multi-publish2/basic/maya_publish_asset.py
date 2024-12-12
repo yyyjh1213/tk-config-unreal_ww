@@ -221,15 +221,34 @@ class MayaAssetPublishPlugin(HookBaseClass):
         Register the publish with Shotgun
         """
         publisher = self.parent
+
+        # Get fields from the work file template
+        work_template = item.properties.get("work_template")
+        fields = {}
         
-        # Get the publish info
-        publish_version = publisher.util.get_version_number(publish_path)
-        
+        if work_template:
+            fields = work_template.get_fields(item.properties.path)
+            
+            # Add context fields
+            fields["Step"] = publisher.context.step["name"]
+            fields["name"] = publisher.context.task["name"]
+            
+            # Get the version number from the work file
+            if "version" not in fields:
+                fields["version"] = publisher.util.get_version_number(item.properties.path)
+        else:
+            # No work template, try to get fields from context
+            fields = {
+                "Step": publisher.context.step["name"],
+                "name": publisher.context.task["name"],
+                "version": publisher.util.get_version_number(item.properties.path)
+            }
+
         # Build publish name with context information
         publish_name = "%s_%s_v%03d" % (
-            publisher.context.task["name"],
-            publisher.context.step["name"],
-            publish_version
+            fields["name"],
+            fields["Step"],
+            fields["version"]
         )
         
         # Populate the version data to register
@@ -253,6 +272,20 @@ class MayaAssetPublishPlugin(HookBaseClass):
             self.logger.error("Failed to create version in Shotgun: %s" % e)
             raise
 
+        # Get the publish type from plugin settings
+        publish_type = None
+        for type_spec in settings["File Types"].value:
+            if type_spec[0] == "Maya Scene":
+                for ext in type_spec[1:]:
+                    if publish_path.lower().endswith(".%s" % ext):
+                        publish_type = type_spec[0]
+                        break
+            if publish_type:
+                break
+
+        if not publish_type:
+            publish_type = "Maya Scene"
+
         # Register the publish using publisher.register_publish
         publish_data = {
             "tk": publisher.sgtk,
@@ -261,8 +294,8 @@ class MayaAssetPublishPlugin(HookBaseClass):
             "path": publish_path,
             "name": publish_name,
             "created_by": publisher.context.user,
-            "version_number": publish_version,
-            "published_file_type": "FBX File",
+            "version_number": fields["version"],
+            "published_file_type": publish_type,
             "version_entity": version
         }
 
