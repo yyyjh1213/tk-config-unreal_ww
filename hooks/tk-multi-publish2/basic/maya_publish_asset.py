@@ -68,6 +68,17 @@ class MayaAssetPublishPlugin(HookBaseClass):
             self.logger.error(error_msg)
             raise Exception(error_msg)
 
+        # Get the publish path
+        publish_path = self._get_publish_path(settings, item)
+        
+        # If the publish path exists, increment the version number
+        if os.path.exists(publish_path):
+            self.logger.info("A file already exists in the publish path. Looking for the next available version number.")
+            publish_path = self._get_next_version_path(publish_path)
+            
+        # Store the publish path on the item properties
+        item.properties["publish_path"] = publish_path
+
         return True
 
     def publish(self, settings, item):
@@ -82,7 +93,7 @@ class MayaAssetPublishPlugin(HookBaseClass):
         _save_session(path)
 
         # Get the publish path
-        publish_path = self._get_publish_path(settings, item)
+        publish_path = item.properties.get("publish_path")
         
         # Ensure the publish folder exists
         publish_folder = os.path.dirname(publish_path)
@@ -135,6 +146,31 @@ class MayaAssetPublishPlugin(HookBaseClass):
             basename, ext = os.path.splitext(path)
             publish_path = basename + ".fbx"
             return publish_path
+
+    def _get_next_version_path(self, path):
+        """
+        Given a file path, return a new path with a version number incremented.
+        """
+        directory = os.path.dirname(path)
+        filename = os.path.basename(path)
+        basename, ext = os.path.splitext(filename)
+        
+        # Check if the basename ends with a version number
+        import re
+        version_pattern = re.compile(r"_v(\d+)$")
+        match = version_pattern.search(basename)
+        
+        if match:
+            # Get current version number and increment it
+            current_version = int(match.group(1))
+            new_version = current_version + 1
+            # Replace the version number in the basename
+            new_basename = version_pattern.sub("_v%03d" % new_version, basename)
+        else:
+            # No version number found, add v001
+            new_basename = "%s_v001" % basename
+            
+        return os.path.join(directory, new_basename + ext)
 
     def _register_publish(self, settings, item, publish_path):
         """
