@@ -189,15 +189,15 @@ class MayaAssetPublishPlugin(HookBaseClass):
         # Populate the version data to register
         version_data = {
             "project": publisher.context.project,
-            "code": publish_name,  
+            "code": publish_name,
             "description": item.description,
             "entity": publisher.context.entity,
-            "sg_task": publisher.context.task,  
+            "sg_task": publisher.context.task,
             "created_by": publisher.context.user,
-            "user": publisher.context.user,  
-            "sg_status_list": "rev",  
-            "sg_path_to_frames": publish_path,  
-            "sg_version_number": publish_version,  
+            "user": publisher.context.user,
+            "sg_status_list": "rev",
+            "sg_path_to_frames": publish_path,
+            "version_number": publish_version
         }
         
         # Create the version in Shotgun
@@ -216,7 +216,7 @@ class MayaAssetPublishPlugin(HookBaseClass):
             "path": publish_path,
             "name": publish_name,
             "version_number": publish_version,
-            "published_file_type": "FBX File"  
+            "published_file_type": "FBX File"
         }
         
         try:
