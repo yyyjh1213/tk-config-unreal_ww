@@ -227,7 +227,22 @@ class MayaAssetPublishPlugin(HookBaseClass):
         # Get context information safely
         step_name = publisher.context.step.get("name", "step") if publisher.context.step else "step"
         task_name = publisher.context.task.get("name", "task") if publisher.context.task else "task"
-        version_number = publisher.util.get_version_number(item.properties.get("path", "")) or 1
+
+        # Get version number safely
+        try:
+            if hasattr(item.properties, "publish_version"):
+                version_number = item.properties.publish_version
+            else:
+                # Try to extract version from publish_path
+                import re
+                version_pattern = re.compile(r"v(\d+)", re.IGNORECASE)
+                match = version_pattern.search(publish_path)
+                if match:
+                    version_number = int(match.group(1))
+                else:
+                    version_number = 1
+        except:
+            version_number = 1
 
         # Build publish name with context information
         publish_name = "%s_%s_v%03d" % (
