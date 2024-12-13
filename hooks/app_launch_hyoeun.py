@@ -96,8 +96,9 @@ class AppLaunch(tank.Hook):
         if app_name == 'unreal':
             current_dir = os.path.abspath(os.path.dirname(__file__))
             unreal_python_dir = os.path.join(current_dir, "app_launch")
+            
             if 'UE_PYTHONPATH' in os.environ:
-                os.environ['UE_PYTHONPATH'] += os.pathsep + new_paths
+                os.environ['UE_PYTHONPATH'] += os.pathsep + unreal_python_dir
             else:
                 os.environ['UE_PYTHONPATH'] = unreal_python_dir
 
