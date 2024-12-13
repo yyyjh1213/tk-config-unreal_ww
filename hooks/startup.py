@@ -1,15 +1,8 @@
 import unreal
-import time
 
-unreal.log("A"*30)
-unreal.log("add custom menu 스크립트 실행")
-unreal.log("A"*30)
-
-# print("A"*30)
-# print("add custom menu 스크립트 실행")
-# print("A"*30)
-
-
+unreal.log("*"*30)
+unreal.log("*"*20, "Startup Python Execution", "*"*20)
+unreal.log("*"*30)
 
 def add_content_browser_menu():
     try:
@@ -45,8 +38,11 @@ def add_content_browser_menu():
         # 실행할 Python 명령 설정
         command_string = """
 import unreal
-unreal.log("********** 커스텀 액션을 실행합니다 **********")
-
+unreal.log("********** Shot Folder Creation **********")
+win_dir = os.path.abspath(os.path.dirname(__file__))
+if win_dir not in sys.path:
+    sys.path.append(win_dir)
+    print(f"========== {win_dir}를 sys.path에 append했습니다")
 import create_shot_directory
 create_shot_directory.main()
 """

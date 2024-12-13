@@ -97,6 +97,16 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("sys.path: %s" % sys.path)
 
 
+        if app_name == 'unreal':
+
+            win_dir = os.path.abspath(os.path.dirname(__file__))
+            if win_dir not in sys.path:
+                sys.path.append(win_dir)
+                print(f"========== {win_dir}를 sys.path에 append했습니다")
+                
+            # startup_python = os.path.join(win_dir, "startup.py")
+
+
         if depart_confirm:
             
             adapter = get_adapter(platform.system())
@@ -157,25 +167,6 @@ class AppLaunch(tank.Hook):
                 self.parent.log_debug("============================== depart_confirm이 False인 경우")
 
                 cmd = 'start /B "App" "%s" %s' % (app_path, app_args) # Original
-
-                # cmd = 'start /B "App" "%s" %s && python "%s"' % (app_path, app_args, python_path)
-                # cmd = 'start /B "%s" %s && "%s" %s' % (app_path, app_args, app_path, python_path)
-                # ue_cmd = "C:/Program Files/Epic Games/UE_5.4/Engine/Binaries/Win64/UnrealEditor-Cmd.exe"
-                # cmd = 'start /B "%s" %s && "%s" "%s"' % (app_path, app_args, ue_cmd, python_path)
-
-                if app_name == 'unreal':
-                    self.parent.log_debug("========== 언리얼 엔진 실행")
-
-                    win_dir = os.path.abspath(os.path.dirname(__file__))
-                    if win_dir not in sys.path:
-                        sys.path.append(win_dir)
-                    startup_python = os.path.join(win_dir, "startup.py")
-
-                    project_path = "C:/Users/admin/Desktop/pipeline_hyoeun/MyProject6/MyProject6.uproject"
-
-                    # command
-                    # cmd = f'"{app_path}" "{project_path}" -ExecutePythonScript="{startup_python}”'
-
                 self.parent.log_debug(f"========== cmd : {cmd}")
 
             # run the command to launch the app
