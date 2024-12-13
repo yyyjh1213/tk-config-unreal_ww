@@ -126,7 +126,7 @@ class AppLaunch(tank.Hook):
             if not packages or app_name == 'unreal':
                 if not packages:
                     self.logger.debug('No rez packages were found. The default boot, instead.')
-                self.parent.log_debug("============================== depart_confirm인 경우")
+                self.parent.log_debug("============================== depart_confirm이 True인 경우")
                 command = adapter.get_command(app_path, app_args)
                 return_code = os.system(command)
                 return {'command': command, 'return_code': return_code}
@@ -159,9 +159,10 @@ class AppLaunch(tank.Hook):
                     cmd = "%s %s &" % (app_path, app_args)
 
             else:
-                self.parent.log_debug("============================== else인 경우")
                 # on windows, we run the start command in order to avoid
                 # any command shells popping up as part of the application launch.
+                self.parent.log_debug("============================== depart_confirm이 False인 경우")
+
                 # cmd = 'start /B "App" "%s" %s' % (app_path, app_args) # 원본
                 # cmd = 'start /B "App" "%s" %s && python "%s"' % (app_path, app_args, python_path)
                 cmd = 'start /B "%s" %s && "%s" %s' % (app_path, app_args, app_path, python_path)

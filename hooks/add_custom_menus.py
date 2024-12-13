@@ -21,7 +21,7 @@ def add_content_browser_menu():
             section_name,
             unreal.Text("My Custom Actions")
         )
-        
+
         # 메뉴 항목 추가
         entry = unreal.ToolMenuEntry(
             name="MyCustomAction",
@@ -61,4 +61,9 @@ create_shot_directory.main()
         unreal.log_error(f"Error adding menu: {str(e)}")
 
 # 메뉴 추가 실행
-add_content_browser_menu()
+# add_content_browser_menu()
+
+
+unreal.log("="*20)
+unreal.log("add custom menu 스크립트 실행")
+unreal.log("="*20)
