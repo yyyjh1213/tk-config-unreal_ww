@@ -5,9 +5,9 @@ unreal.log("A"*30)
 unreal.log("add custom menu 스크립트 실행")
 unreal.log("A"*30)
 
-print("A"*30)
-print("add custom menu 스크립트 실행")
-print("A"*30)
+# print("A"*30)
+# print("add custom menu 스크립트 실행")
+# print("A"*30)
 
 def add_content_browser_menu():
     try:
@@ -71,6 +71,3 @@ create_shot_directory.main()
 
 # 메뉴 추가 실행
 # add_content_browser_menu()
-
-while True:
-    time.sleep(1)
