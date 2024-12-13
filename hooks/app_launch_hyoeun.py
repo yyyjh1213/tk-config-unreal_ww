@@ -98,13 +98,7 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
 
-            import psutil
-
-            for process in psutil.process_iter(attrs=['name']):
-                if 'UnrealEditor' in process.info['name']:  # UnrealEditor.exe (Windows) 또는 UnrealEditor (Linux/Mac)
-                    self.parent.log_debug("언리얼 엔진이 실행 중입니다")
-                else:
-                    self.parent.log_debug("언리얼 엔진 실행 XXXXXXXXXX")
+            self.parent.log_debug("END "*30)
 
 
 
