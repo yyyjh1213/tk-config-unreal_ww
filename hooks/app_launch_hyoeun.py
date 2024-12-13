@@ -96,16 +96,12 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
 
-            self.parent.log_debug("END "*30)
-
-
 
         # 모듈 import
         win_dir = os.path.abspath(os.path.dirname(__file__))
         if win_dir not in sys.path:
             sys.path.append(win_dir)
         python_path = os.path.join(win_dir, "add_custom_menus.py")
-
 
 
         if depart_confirm:
@@ -130,6 +126,7 @@ class AppLaunch(tank.Hook):
             if not packages or app_name == 'unreal':
                 if not packages:
                     self.logger.debug('No rez packages were found. The default boot, instead.')
+                self.parent.log_debug("="*20, "depart_confirm인 경우")
                 command = adapter.get_command(app_path, app_args)
                 return_code = os.system(command)
                 return {'command': command, 'return_code': return_code}
@@ -162,6 +159,7 @@ class AppLaunch(tank.Hook):
                     cmd = "%s %s &" % (app_path, app_args)
 
             else:
+                self.parent.log_debug("="*20, "else인 경우")
                 # on windows, we run the start command in order to avoid
                 # any command shells popping up as part of the application launch.
                 # cmd = 'start /B "App" "%s" %s' % (app_path, app_args) # 원본
