@@ -1,5 +1,13 @@
 import unreal
 
+unreal.log("A"*30)
+unreal.log("add custom menu 스크립트 실행")
+unreal.log("A"*30)
+
+print("A"*30)
+print("add custom menu 스크립트 실행")
+print("A"*30)
+
 def add_content_browser_menu():
     try:
         # 메뉴 시스템 초기화
@@ -62,8 +70,3 @@ create_shot_directory.main()
 
 # 메뉴 추가 실행
 # add_content_browser_menu()
-
-
-unreal.log("A"*30)
-unreal.log("add custom menu 스크립트 실행")
-unreal.log("A"*30)
