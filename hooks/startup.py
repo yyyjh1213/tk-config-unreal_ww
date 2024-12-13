@@ -9,6 +9,8 @@ unreal.log("A"*30)
 # print("add custom menu 스크립트 실행")
 # print("A"*30)
 
+
+
 def add_content_browser_menu():
     try:
         # 메뉴 시스템 초기화
@@ -43,11 +45,7 @@ def add_content_browser_menu():
         # 실행할 Python 명령 설정
         command_string = """
 import unreal
-unreal.log("********** 커스텀 액션을 실행합니다~")
-
-win_dir = os.path.abspath(os.path.dirname(__file__))
-if win_dir not in sys.path:
-    sys.path.append(win_dir)
+unreal.log("********** 커스텀 액션을 실행합니다 **********")
 
 import create_shot_directory
 create_shot_directory.main()
@@ -70,4 +68,4 @@ create_shot_directory.main()
         unreal.log_error(f"Error adding menu: {str(e)}")
 
 # 메뉴 추가 실행
-# add_content_browser_menu()
+add_content_browser_menu()

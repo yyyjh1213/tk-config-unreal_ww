@@ -167,9 +167,9 @@ class AppLaunch(tank.Hook):
                     self.parent.log_debug("========== 언리얼 엔진 실행")
 
                     win_dir = os.path.abspath(os.path.dirname(__file__))
-                    startup_python = os.path.join(win_dir, "startup.py")
                     if win_dir not in sys.path:
                         sys.path.append(win_dir)
+                    startup_python = os.path.join(win_dir, "startup.py")
 
                     project_path = "C:/Users/admin/Desktop/pipeline_hyoeun/MyProject6/MyProject6.uproject"
 
