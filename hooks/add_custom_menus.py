@@ -64,6 +64,6 @@ create_shot_directory.main()
 # add_content_browser_menu()
 
 
-unreal.log("="*20)
+unreal.log("A"*30)
 unreal.log("add custom menu 스크립트 실행")
-unreal.log("="*20)
+unreal.log("A"*30)
