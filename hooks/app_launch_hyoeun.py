@@ -97,13 +97,6 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("sys.path: %s" % sys.path)
 
 
-        # 모듈 import
-        win_dir = os.path.abspath(os.path.dirname(__file__))
-        if win_dir not in sys.path:
-            sys.path.append(win_dir)
-        python_path = os.path.join(win_dir, "add_custom_menus.py")
-
-
         if depart_confirm:
             
             adapter = get_adapter(platform.system())
@@ -163,12 +156,27 @@ class AppLaunch(tank.Hook):
                 # any command shells popping up as part of the application launch.
                 self.parent.log_debug("============================== depart_confirm이 False인 경우")
 
-                # cmd = 'start /B "App" "%s" %s' % (app_path, app_args) # 원본
+                cmd = 'start /B "App" "%s" %s' % (app_path, app_args) # Original
+
                 # cmd = 'start /B "App" "%s" %s && python "%s"' % (app_path, app_args, python_path)
                 # cmd = 'start /B "%s" %s && "%s" %s' % (app_path, app_args, app_path, python_path)
-                ue_cmd = "C:/Program Files/Epic Games/UE_5.4/Engine/Binaries/Win64/UnrealEditor-Cmd.exe"
-                cmd = 'start /B "%s" %s && "%s" "%s"' % (app_path, app_args, ue_cmd, python_path)
-                self.parent.log_debug(f"===== cmd : {cmd}")
+                # ue_cmd = "C:/Program Files/Epic Games/UE_5.4/Engine/Binaries/Win64/UnrealEditor-Cmd.exe"
+                # cmd = 'start /B "%s" %s && "%s" "%s"' % (app_path, app_args, ue_cmd, python_path)
+
+                if app_name == 'unreal':
+                    self.parent.log_debug("========== 언리얼 엔진 실행")
+
+                    win_dir = os.path.abspath(os.path.dirname(__file__))
+                    startup_python = os.path.join(win_dir, "startup.py")
+                    if win_dir not in sys.path:
+                        sys.path.append(win_dir)
+
+                    project_path = "C:/Users/admin/Desktop/pipeline_hyoeun/MyProject6/MyProject6.uproject"
+
+                    # command
+                    cmd = f'"{app_path}" "{project_path}" -ExecutePythonScript="{startup_python}”'
+
+                self.parent.log_debug(f"========== cmd : {cmd}")
 
             # run the command to launch the app
             exit_code = os.system(cmd)
