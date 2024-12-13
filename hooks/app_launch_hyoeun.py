@@ -56,7 +56,6 @@ class AppLaunch(tank.Hook):
         :returns: (dict) The two valid keys are 'command' (str) and 'return_code' (int).
         """
 
-
         system = platform.system()
 
         app_name = ENGINES[engine_name]
@@ -73,7 +72,6 @@ class AppLaunch(tank.Hook):
                 depart_confirm = True
         else:
             self.parent.log_debug("No department found for user: %s" % user)
-
 
         if sys.version_info.major == 3 and app_name == 'unreal' and system == 'Windows':
             now_dir = os.path.dirname(os.path.abspath(__file__))
@@ -99,6 +97,14 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("sys.path: %s" % sys.path)
 
             self.parent.log_debug("END "*30)
+
+
+
+        # 모듈 import
+        win_dir = os.path.abspath(os.path.dirname(__file__))
+        if win_dir not in sys.path:
+            sys.path.append(win_dir)
+        python_path = os.path.join(win_dir, "add_custom_menus")
 
 
 
@@ -158,13 +164,13 @@ class AppLaunch(tank.Hook):
             else:
                 # on windows, we run the start command in order to avoid
                 # any command shells popping up as part of the application launch.
-                cmd = 'start /B "App" "%s" %s' % (app_path, app_args)
+                # cmd = 'start /B "App" "%s" %s' % (app_path, app_args) # 원본
+                cmd = 'start /B "App" "%s" %s && python %s' % (app_path, app_args, python_path)
 
             # run the command to launch the app
             exit_code = os.system(cmd)
 
             return {"command": cmd, "return_code": exit_code}
-
 
 def get_rez_packages(sg, app_name, version, system, project):
     
@@ -202,8 +208,6 @@ def get_rez_packages(sg, app_name, version, system, project):
         packages = None
         
     return packages
-
-
 
 def get_adapter(system=''):
     if not system:
@@ -294,4 +298,3 @@ class WindowsAdapter(BaseAdapter):
     def get_rez_root_command():
 
         return 'rez-env rez -- echo %REZ_REZ_ROOT%'
-
