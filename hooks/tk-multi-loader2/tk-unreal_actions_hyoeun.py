@@ -124,7 +124,7 @@ class UnrealActions(HookBaseClass):
     ##############################################################################################################
     # helper methods which can be subclassed in custom hooks to fine tune the behaviour of things
 
-    def _get_destination_path_and_name(self, sg_publish_data): # templates.yml 참조
+    def _get_destination_path_and_name(self, sg_publish_data):
         """
         Get the destination path and name from the publish data and the templates
 
@@ -160,17 +160,12 @@ class UnrealActions(HookBaseClass):
             destination_name_template = self.sgtk.templates["unreal_loader_project_name"]
 
 
-        # 실제로 destination_path, name이 생성되는 부분은 여기서부터
         # Get the name field from the Publish Data
         name = sg_publish_data["name"]
         name = os.path.splitext(name)[0]
 
         # Query the fields needed for the destination template from the context
         fields = context.as_template_fields(destination_template)
-
-        print("*"*10, "_get_destination_path_and_name 함수 name, field 변수 확인")
-        print("*"*10, f"name : {name}")
-        print("*"*10, f"fields = {fields}")
 
         # Add the name field from the publish data
         fields["name"] = name
@@ -206,7 +201,7 @@ Functions to import FBX into Unreal
 """
 
 
-def _sanitize_name(name): # 에셋 이름에서 버전 번호 제거
+def _sanitize_name(name):
     
     # Remove the default Shotgun versioning number if found (of the form '.v001')
     name_no_version = re.sub(r'.v[0-9]{3}', '', name)
@@ -214,7 +209,7 @@ def _sanitize_name(name): # 에셋 이름에서 버전 번호 제거
     # Replace any remaining '.' with '_' since they are not allowed in Unreal asset names
     return name_no_version.replace('.', '_')
 
-def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # fbx 어셋을 unreal로 가져옴. 첫번째로 가져온 객체의 경로
+def _unreal_import_fbx_asset(input_path, destination_path, destination_name):
     """
     Import an FBX into Unreal Content Browser
 
@@ -238,12 +233,12 @@ def _unreal_import_fbx_asset(input_path, destination_path, destination_name): # 
                 first_imported_object = object_path
 
 
-    # sys.path에 경로 추가
+    # Adding a Path with Modules in sys.path
     win_dir = os.path.abspath(os.path.dirname(__file__))
     if win_dir not in sys.path:
         sys.path.append(win_dir)
 
-    # 모듈 실행
+    # Run the module
     import unreal_rename
     import save_all_assets
     save_all_assets.save_all_unsaved_assets()
@@ -290,9 +285,9 @@ def _generate_fbx_import_task(
     task.options.import_textures = textures
     task.options.import_as_skeletal = as_skeletal
     task.options.static_mesh_import_data.combine_meshes = True
-    task.options.import_animations = True # Animation step의 Asset import
+    task.options.import_animations = True # Add Animation Import Options
 
-    # 메시 유형 설정
+    # Set mesh type
     task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_STATIC_MESH
     if as_skeletal:
         task.options.mesh_type_to_import = unreal.FBXImportType.FBXIT_SKELETAL_MESH
