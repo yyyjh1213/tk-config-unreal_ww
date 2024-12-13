@@ -1,7 +1,7 @@
 import unreal
 
 unreal.log("*"*30)
-unreal.log("*"*20, "Startup Python Execution", "*"*20)
+unreal.log("Startup Python Execution")
 unreal.log("*"*30)
 
 def add_content_browser_menu():
@@ -39,10 +39,12 @@ def add_content_browser_menu():
         command_string = """
 import unreal
 unreal.log("********** Shot Folder Creation **********")
+
 win_dir = os.path.abspath(os.path.dirname(__file__))
 if win_dir not in sys.path:
     sys.path.append(win_dir)
     print(f"========== {win_dir}를 sys.path에 append했습니다")
+
 import create_shot_directory
 create_shot_directory.main()
 """
