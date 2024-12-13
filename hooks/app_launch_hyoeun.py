@@ -165,8 +165,10 @@ class AppLaunch(tank.Hook):
 
                 # cmd = 'start /B "App" "%s" %s' % (app_path, app_args) # 원본
                 # cmd = 'start /B "App" "%s" %s && python "%s"' % (app_path, app_args, python_path)
-                cmd = 'start /B "%s" %s && "%s" %s' % (app_path, app_args, app_path, python_path)
-
+                # cmd = 'start /B "%s" %s && "%s" %s' % (app_path, app_args, app_path, python_path)
+                ue_cmd = "C:/Program Files/Epic Games/UE_5.4/Engine/Binaries/Win64/UnrealEditor-Cmd.exe"
+                cmd = 'start /B "%s" %s && "%s" %s' % (app_path, app_args, ue_cmd, python_path)
+                self.parent.log_debug(f"===== cmd : {cmd}")
 
             # run the command to launch the app
             exit_code = os.system(cmd)
