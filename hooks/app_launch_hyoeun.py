@@ -104,7 +104,7 @@ class AppLaunch(tank.Hook):
         win_dir = os.path.abspath(os.path.dirname(__file__))
         if win_dir not in sys.path:
             sys.path.append(win_dir)
-        python_path = os.path.join(win_dir, "add_custom_menus")
+        python_path = os.path.join(win_dir, "add_custom_menus.py")
 
 
 
