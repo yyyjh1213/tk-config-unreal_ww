@@ -91,20 +91,21 @@ class AppLaunch(tank.Hook):
             else:
                 os.environ['UE_PYTHONPATH'] = new_paths
 
-            self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
-            self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
-            self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
-            self.parent.log_debug("sys.path: %s" % sys.path)
-
 
         if app_name == 'unreal':
 
             win_dir = os.path.abspath(os.path.dirname(__file__))
             if win_dir not in sys.path:
                 sys.path.append(win_dir)
+                os.environ['UE_PYTHONPATH'] = win_dir
                 print(f"========== {win_dir}를 sys.path에 append했습니다")
-                
+
             # startup_python = os.path.join(win_dir, "startup.py")
+
+            self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
+            self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
+            self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
+            self.parent.log_debug("sys.path: %s" % sys.path)
 
 
         if depart_confirm:
