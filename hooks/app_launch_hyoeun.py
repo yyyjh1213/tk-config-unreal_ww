@@ -85,33 +85,18 @@ class AppLaunch(tank.Hook):
                 "external_path3",
                 packages
             ]
-
+            
             new_paths = os.pathsep.join(external_paths)
-
+            
             if 'UE_PYTHONPATH' in os.environ:
                 os.environ['UE_PYTHONPATH'] += os.pathsep + new_paths
             else:
                 os.environ['UE_PYTHONPATH'] = new_paths
 
-            # 실행할 Python 스크립트 경로 설정
-            startup_script = os.path.join(now_dir, 'make_custom_menus.py')
-            self.parent.log_debug(f"startup_script : {startup_script}")
-
-            # 환경변수에 시작 스크립트 경로 추가
-            # os.environ['UNREAL_PATH'] = startup_script
-
-            # app_args에 Python 스크립트 실행 명령 추가
-            if app_args:
-                app_args += f' -PythonStartupScript="{startup_script}"'
-            else:
-                app_args = f'-PythonStartupScript="{startup_script}"'
-
-
             self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
             self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
-            self.parent.log_debug("UNREAL_PATH: %s" % os.environ['UNREAL_PATH'])
 
 
         if depart_confirm:
@@ -307,11 +292,3 @@ class WindowsAdapter(BaseAdapter):
 
         return 'rez-env rez -- echo %REZ_REZ_ROOT%'
 
-# # sys.path에 경로 추가
-# win_dir = os.path.abspath(os.path.dirname(__file__))
-# if win_dir not in sys.path:
-#     sys.path.append(win_dir)
-# self.parent.log_debug("****************** BEFORE LAUNCH")
-
-# import make_custom_menus
-# make_custom_menus.run()
