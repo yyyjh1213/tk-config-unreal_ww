@@ -174,7 +174,7 @@ class AppLaunch(tank.Hook):
                     project_path = "C:/Users/admin/Desktop/pipeline_hyoeun/MyProject6/MyProject6.uproject"
 
                     # command
-                    cmd = f'"{app_path}" "{project_path}" -ExecutePythonScript="{startup_python}”'
+                    # cmd = f'"{app_path}" "{project_path}" -ExecutePythonScript="{startup_python}”'
 
                 self.parent.log_debug(f"========== cmd : {cmd}")
 
