@@ -93,19 +93,16 @@ class AppLaunch(tank.Hook):
 
 
         if app_name == 'unreal':
-
+            # 실행 전에 UE_PYTHONPATH에 모듈이 있는 디렉토리 추가
             win_dir = os.path.abspath(os.path.dirname(__file__))
-            if win_dir not in sys.path:
-                sys.path.append(win_dir)
-                os.environ['UE_PYTHONPATH'] = win_dir
-                print(f"========== {win_dir}를 sys.path에 append했습니다")
+            self.parent.log_debug(f"========== win_dir : {win_dir}")
+            os.environ['UE_PYTHONPATH'] = win_dir
 
-            # startup_python = os.path.join(win_dir, "startup.py")
 
-            self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
-            self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
-            self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
-            self.parent.log_debug("sys.path: %s" % sys.path)
+        self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
+        self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
+        self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
+        self.parent.log_debug("sys.path: %s" % sys.path)
 
 
         if depart_confirm:
