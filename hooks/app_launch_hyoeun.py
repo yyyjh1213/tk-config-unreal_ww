@@ -92,11 +92,10 @@ class AppLaunch(tank.Hook):
                 os.environ['UE_PYTHONPATH'] = new_paths
 
 
+        # Add directory with init_unreal.py to UE_PYTHONPATH before running the app
         if app_name == 'unreal':
-            # 실행 전에 UE_PYTHONPATH에 모듈이 있는 디렉토리 추가
-            win_dir = os.path.abspath(os.path.dirname(__file__))
-            self.parent.log_debug(f"========== win_dir : {win_dir}")
-            os.environ['UE_PYTHONPATH'] = win_dir
+            unreal_python_dir = os.path.abspath(os.path.dirname(__file__))
+            os.environ['UE_PYTHONPATH'] = unreal_python_dir
 
 
         self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
