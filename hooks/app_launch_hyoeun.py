@@ -165,7 +165,7 @@ class AppLaunch(tank.Hook):
                 # on windows, we run the start command in order to avoid
                 # any command shells popping up as part of the application launch.
                 # cmd = 'start /B "App" "%s" %s' % (app_path, app_args) # 원본
-                cmd = 'start /B "App" "%s" %s && python %s' % (app_path, app_args, python_path)
+                cmd = 'start /B "App" "%s" %s && python "%s"' % (app_path, app_args, python_path)
 
             # run the command to launch the app
             exit_code = os.system(cmd)
