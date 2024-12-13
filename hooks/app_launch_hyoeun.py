@@ -94,7 +94,8 @@ class AppLaunch(tank.Hook):
 
         # Add directory with init_unreal.py to UE_PYTHONPATH before running the app
         if app_name == 'unreal':
-            unreal_python_dir = os.path.abspath(os.path.dirname(__file__))
+            current_dir = os.path.abspath(os.path.dirname(__file__))
+            unreal_python_dir = os.path.join(current_dir, "app_launch")
             os.environ['UE_PYTHONPATH'] = unreal_python_dir
 
 
@@ -126,7 +127,6 @@ class AppLaunch(tank.Hook):
             if not packages or app_name == 'unreal':
                 if not packages:
                     self.logger.debug('No rez packages were found. The default boot, instead.')
-                self.parent.log_debug("============================== depart_confirm이 True인 경우")
                 command = adapter.get_command(app_path, app_args)
                 return_code = os.system(command)
                 return {'command': command, 'return_code': return_code}
@@ -161,10 +161,8 @@ class AppLaunch(tank.Hook):
             else:
                 # on windows, we run the start command in order to avoid
                 # any command shells popping up as part of the application launch.
-                self.parent.log_debug("============================== depart_confirm이 False인 경우")
 
                 cmd = 'start /B "App" "%s" %s' % (app_path, app_args) # Original
-                self.parent.log_debug(f"========== cmd : {cmd}")
 
             # run the command to launch the app
             exit_code = os.system(cmd)
