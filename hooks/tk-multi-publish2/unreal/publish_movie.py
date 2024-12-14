@@ -355,7 +355,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             )
             fields = item.context.as_template_fields(publish_template)
 
-        # 맵이 저장되어 있는지 확인
         unreal_map = unreal.EditorLevelLibrary.get_editor_world()
         unreal_map_path = unreal_map.get_path_name()
         if unreal_map_path.startswith("/Temp/"):
@@ -380,31 +379,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         fields["YYYY"] = date.year
         fields["MM"] = date.month
         fields["DD"] = date.day
-
-        # 여기서 Sequence, Shot, Step 필드를 수동으로 설정
-        # 예: context.entity가 Shot 타입이고 이름이 SH001이라면:
-        # fields["Sequence"], fields["Shot"], fields["Step"]를 채워야 한다면 아래와 같이 할 수 있음
-        if "Sequence" not in fields:
-            # Sequence 엔티티가 context에 있다면 해당 이름 할당
-            # 없다면 기본값 설정 (e.g. "seq_default")
-            if context.entity and context.entity["type"] == "Sequence":
-                fields["Sequence"] = context.entity["name"]
-            else:
-                fields["Sequence"] = "seq_default"
-
-        if "Shot" not in fields:
-            # 만약 context가 Shot 엔티티라면 해당 코드를 할당
-            if context.entity and context.entity["type"] == "Shot":
-                fields["Shot"] = context.entity["name"]
-            else:
-                fields["Shot"] = "shot_default"
-
-        if "Step" not in fields:
-            # context.step에서 step명을 가져올 수 있다면 할당
-            if context.step:
-                fields["Step"] = context.step["name"]
-            else:
-                fields["Step"] = "step_default"
 
         render_format = settings["Render Format"].value.lower()
         if render_format not in ["exr", "mov"]:
@@ -439,6 +413,33 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             item.properties["frame_rate"] = fps.numerator
             self.logger.info("Sequence frame range: %d to %d at %d fps" % (start_frame, end_frame, fps.numerator))
 
+        # (수정 시작)
+        # context로부터 Shot과 Sequence, Step 정보를 fields에 반영
+        sg = self.parent.shotgun
+        # Shot일 경우 Shot 이름과 Sequence 이름 가져오기
+
+        shot_data = sg.find_one("Shot", [["id", "is", context.entity["id"]]], ["code", "sg_sequence"])
+        if shot_data:
+            # Shot code에서 ue_sg_shot_name 설정
+            fields["ue_sg_shot_name"] = shot_data["code"] if shot_data["code"] else "shot_default"
+            if shot_data["sg_sequence"]:
+                # Sequence 엔티티 이름
+                seq_data = shot_data["sg_sequence"]
+                fields["ue_sg_sequence_name"] = seq_data["name"] if seq_data.get("name") else "seq_default"
+            else:
+                fields["ue_sg_sequence_name"] = "seq_default"
+        else:
+            # 샷 정보 없음
+            fields["ue_sg_shot_name"] = "shot_default"
+            fields["ue_sg_sequence_name"] = "seq_default"
+
+        # Step 정보 설정
+        if context.step and "name" in context.step:
+            fields["Step"] = context.step["name"]
+        else:
+            fields["Step"] = "step_default"
+        # (수정 끝)
+
         missing_keys = publish_template.missing_keys(fields)
         if missing_keys:
             error_msg = "Missing keys required for the publish template %s" % (missing_keys)
@@ -471,6 +472,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         self.save_ui_settings(settings)
         return True
+
     def _check_render_settings(self, render_config):
         """
         Check settings from the given render preset and report which ones are problematic.
