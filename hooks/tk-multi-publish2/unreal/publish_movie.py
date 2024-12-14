@@ -355,6 +355,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             )
             fields = item.context.as_template_fields(publish_template)
 
+        # 맵이 저장되어 있는지 확인
         unreal_map = unreal.EditorLevelLibrary.get_editor_world()
         unreal_map_path = unreal_map.get_path_name()
         if unreal_map_path.startswith("/Temp/"):
@@ -379,6 +380,31 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         fields["YYYY"] = date.year
         fields["MM"] = date.month
         fields["DD"] = date.day
+
+        # 여기서 Sequence, Shot, Step 필드를 수동으로 설정
+        # 예: context.entity가 Shot 타입이고 이름이 SH001이라면:
+        # fields["Sequence"], fields["Shot"], fields["Step"]를 채워야 한다면 아래와 같이 할 수 있음
+        if "Sequence" not in fields:
+            # Sequence 엔티티가 context에 있다면 해당 이름 할당
+            # 없다면 기본값 설정 (e.g. "seq_default")
+            if context.entity and context.entity["type"] == "Sequence":
+                fields["Sequence"] = context.entity["name"]
+            else:
+                fields["Sequence"] = "seq_default"
+
+        if "Shot" not in fields:
+            # 만약 context가 Shot 엔티티라면 해당 코드를 할당
+            if context.entity and context.entity["type"] == "Shot":
+                fields["Shot"] = context.entity["name"]
+            else:
+                fields["Shot"] = "shot_default"
+
+        if "Step" not in fields:
+            # context.step에서 step명을 가져올 수 있다면 할당
+            if context.step:
+                fields["Step"] = context.step["name"]
+            else:
+                fields["Step"] = "step_default"
 
         render_format = settings["Render Format"].value.lower()
         if render_format not in ["exr", "mov"]:
@@ -434,7 +460,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         item.properties["path"] = publish_path
         item.properties["publish_path"] = publish_path
         item.properties["version_number"] = version_number
-        item.properties["publish_version"] = version_number  
+        item.properties["publish_version"] = version_number
 
         if self._render_format == "exr":
             item.properties["publish_type"] = "Rendered Image Sequence"
@@ -445,7 +471,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         self.save_ui_settings(settings)
         return True
-
     def _check_render_settings(self, render_config):
         """
         Check settings from the given render preset and report which ones are problematic.
