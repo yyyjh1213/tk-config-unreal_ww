@@ -346,11 +346,28 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         publish_template = item.properties["publish_template"]
         context = item.context
 
-        # 템플릿 필드 설정
-        # 1. 기본 context 필드 추출
+        # 폴더 생성 여부 확인
+        if not context.filesystem_locations:
+            # 폴더가 아직 생성되지 않았을 경우, 엔티티 정보가 있다면 폴더 생성
+            if context.entity:
+                tk = self.parent.sgtk
+                self.logger.info("No filesystem structure found for context. Creating folders for %s %s"
+                                 % (context.entity["type"], context.entity["id"]))
+                tk.create_filesystem_structure(context.entity["type"], context.entity["id"])
+                
+                # 폴더 생성 후 다시 확인
+                if not context.filesystem_locations:
+                    self.logger.error("Folders could not be created automatically. Please run folder creation manually.")
+                    return False
+            else:
+                self.logger.error("No filesystem structure found and context has no entity. "
+                                  "Cannot create folders. Please ensure folders exist.")
+                return False
+
+        # 이제 폴더가 존재하므로 템플릿 필드 추출 시도
         fields = context.as_template_fields(publish_template)
 
-        # 템플릿에서 Step이 필요한 경우 context.step 정보 확인
+        # 템플릿에서 Step이 필요한 경우
         if 'Step' in publish_template.keys:
             if context.step:
                 fields["Step"] = context.step["name"]
@@ -438,10 +455,10 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         if not publish_folder:
             publish_folder = unreal.Paths.project_saved_dir()
 
+        import re
         publish_path = publish_template.apply_fields(fields)
         publish_path = os.path.abspath(os.path.join(publish_folder, publish_path))
 
-        import re
         match = re.search(r"_v(\d+)", publish_path)
         if match:
             version_number = int(match.group(1))
