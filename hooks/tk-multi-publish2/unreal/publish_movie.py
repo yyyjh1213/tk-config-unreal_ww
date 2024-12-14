@@ -346,43 +346,33 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         publish_template = item.properties["publish_template"]
         context = item.context
 
-        try:
-            fields = context.as_template_fields(publish_template)
-        except Exception:
-            self.parent.sgtk.create_filesystem_structure(
-                context.entity["type"],
-                context.entity["id"],
-                self.parent.engine.instance_name
-            )
-            fields = item.context.as_template_fields(publish_template)
+        # 템플릿 필드 설정
+        # 1. 기본 context 필드 추출
+        fields = context.as_template_fields(publish_template)
 
-        # --- 시퀀스 정보 추가 로직 시작 ---
-        # 만약 템플릿에서 Sequence 필드가 필요하다면 Shot으로부터 Sequence를 Query
-        missing_keys = publish_template.missing_keys(fields)
-        if "Sequence" in missing_keys and context.entity and context.entity["type"] == "Shot":
+        # 템플릿에서 Step이 필요한 경우 context.step 정보 확인
+        if 'Step' in publish_template.keys:
+            if context.step:
+                fields["Step"] = context.step["name"]
+            else:
+                self.logger.error("Context does not have a Step defined, but the template requires it.")
+                return False
+
+        # 템플릿에서 Sequence 필드가 필요한 경우 Shot으로부터 Sequence 조회
+        if 'Sequence' in publish_template.keys and context.entity and context.entity["type"] == "Shot":
             sg = self.parent.shotgun
             shot_data = sg.find_one("Shot", [["id", "is", context.entity["id"]]], ["sg_sequence"])
             if shot_data and shot_data["sg_sequence"]:
-                sequence_entity = shot_data["sg_sequence"]
-                fields["Sequence"] = sequence_entity["name"]
-                self.logger.info("Retrieved sequence %s from context." % sequence_entity["name"])
+                fields["Sequence"] = shot_data["sg_sequence"]["name"]
+                self.logger.info("Retrieved sequence %s from context." % shot_data["sg_sequence"]["name"])
             else:
-                self.logger.warning("No sequence found for shot %s. Some template fields may be missing." % context.entity["name"])
-        # --- 시퀀스 정보 추가 로직 끝 ---
-
-        # 다시 missing_keys 확인
-        missing_keys = publish_template.missing_keys(fields)
-        if missing_keys:
-            error_msg = "Missing keys required for the publish template: %s" % (missing_keys)
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+                self.logger.warning("No sequence found for shot %s, but template requires Sequence." % context.entity["name"])
 
         unreal_map = unreal.EditorLevelLibrary.get_editor_world()
         unreal_map_path = unreal_map.get_path_name()
         if unreal_map_path.startswith("/Temp/"):
             self.logger.debug("Current map must be saved first.")
             return False
-
         world_name = unreal_map.get_name()
         fields["ue_world"] = world_name
 
@@ -405,7 +395,8 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         render_format = settings["Render Format"].value.lower()
         if render_format not in ["exr", "mov"]:
-            raise ValueError("Render Format setting must be 'exr' or 'mov'. Given: %s" % render_format)
+            self.logger.error("Render Format setting must be 'exr' or 'mov'. Given: %s" % render_format)
+            return False
         self._render_format = render_format
         fields["ue_mov_ext"] = render_format
 
@@ -430,23 +421,24 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             fps = sequence.get_display_rate()
             start_frame = playback_range.get_start_frame()
             end_frame = playback_range.get_end_frame() - 1
-
             item.properties["start_frame"] = start_frame
             item.properties["end_frame"] = end_frame
             item.properties["frame_rate"] = fps.numerator
             self.logger.info("Sequence frame range: %d to %d at %d fps" % (start_frame, end_frame, fps.numerator))
 
-        # 시퀀스 필드 추가 이후 다시 템플릿 검증
+        # 모든 필드 설정 후 누락 키 확인
         missing_keys = publish_template.missing_keys(fields)
         if missing_keys:
-            error_msg = "Missing keys required for the publish template %s" % (missing_keys)
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+            self.logger.error(
+                "Missing keys required for the publish template: {}".format(missing_keys)
+            )
+            return False
 
-        publish_path = publish_template.apply_fields(fields)
         publish_folder = settings["Publish Folder"].value
         if not publish_folder:
             publish_folder = unreal.Paths.project_saved_dir()
+
+        publish_path = publish_template.apply_fields(fields)
         publish_path = os.path.abspath(os.path.join(publish_folder, publish_path))
 
         import re
