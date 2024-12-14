@@ -525,7 +525,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             exr_files = sorted([f for f in glob.glob(os.path.join(output_dir, base_name + "_*.exr")) if os.path.isfile(f)])
             if not exr_files:
                 raise RuntimeError("No EXR frames found after rendering.")
-            exr_pattern = os.path.join(output_dir, base_name + "_%04d.exr")
+            exr_pattern = os.path.join(output_dir, base_name + "%04d.exr")
             item.properties["path"] = exr_pattern
             item.properties["publish_path"] = exr_pattern
         else:
