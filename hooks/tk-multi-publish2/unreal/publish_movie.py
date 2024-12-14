@@ -345,6 +345,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         publish_template = item.properties["publish_template"]
         context = item.context
+
         try:
             fields = context.as_template_fields(publish_template)
         except Exception:
@@ -355,6 +356,27 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             )
             fields = item.context.as_template_fields(publish_template)
 
+        # --- 시퀀스 정보 추가 로직 시작 ---
+        # 만약 템플릿에서 Sequence 필드가 필요하다면 Shot으로부터 Sequence를 Query
+        missing_keys = publish_template.missing_keys(fields)
+        if "Sequence" in missing_keys and context.entity and context.entity["type"] == "Shot":
+            sg = self.parent.shotgun
+            shot_data = sg.find_one("Shot", [["id", "is", context.entity["id"]]], ["sg_sequence"])
+            if shot_data and shot_data["sg_sequence"]:
+                sequence_entity = shot_data["sg_sequence"]
+                fields["Sequence"] = sequence_entity["name"]
+                self.logger.info("Retrieved sequence %s from context." % sequence_entity["name"])
+            else:
+                self.logger.warning("No sequence found for shot %s. Some template fields may be missing." % context.entity["name"])
+        # --- 시퀀스 정보 추가 로직 끝 ---
+
+        # 다시 missing_keys 확인
+        missing_keys = publish_template.missing_keys(fields)
+        if missing_keys:
+            error_msg = "Missing keys required for the publish template: %s" % (missing_keys)
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+
         unreal_map = unreal.EditorLevelLibrary.get_editor_world()
         unreal_map_path = unreal_map.get_path_name()
         if unreal_map_path.startswith("/Temp/"):
@@ -363,6 +385,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         world_name = unreal_map.get_name()
         fields["ue_world"] = world_name
+
         edits_path_count = len(edits_path)
         if edits_path_count > 1:
             fields["ue_level_sequence"] = "%s_%s" % (edits_path[0].get_name(), edits_path[-1].get_name())
@@ -413,33 +436,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             item.properties["frame_rate"] = fps.numerator
             self.logger.info("Sequence frame range: %d to %d at %d fps" % (start_frame, end_frame, fps.numerator))
 
-        # (수정 시작)
-        # context로부터 Shot과 Sequence, Step 정보를 fields에 반영
-        sg = self.parent.shotgun
-        # Shot일 경우 Shot 이름과 Sequence 이름 가져오기
-
-        shot_data = sg.find_one("Shot", [["id", "is", context.entity["id"]]], ["code", "sg_sequence"])
-        if shot_data:
-            # Shot code에서 ue_sg_shot_name 설정
-            fields["ue_sg_shot_name"] = shot_data["code"] if shot_data["code"] else "shot_default"
-            if shot_data["sg_sequence"]:
-                # Sequence 엔티티 이름
-                seq_data = shot_data["sg_sequence"]
-                fields["ue_sg_sequence_name"] = seq_data["name"] if seq_data.get("name") else "seq_default"
-            else:
-                fields["ue_sg_sequence_name"] = "seq_default"
-        else:
-            # 샷 정보 없음
-            fields["ue_sg_shot_name"] = "shot_default"
-            fields["ue_sg_sequence_name"] = "seq_default"
-
-        # Step 정보 설정
-        if context.step and "name" in context.step:
-            fields["Step"] = context.step["name"]
-        else:
-            fields["Step"] = "step_default"
-        # (수정 끝)
-
+        # 시퀀스 필드 추가 이후 다시 템플릿 검증
         missing_keys = publish_template.missing_keys(fields)
         if missing_keys:
             error_msg = "Missing keys required for the publish template %s" % (missing_keys)
@@ -472,7 +469,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         self.save_ui_settings(settings)
         return True
-
     def _check_render_settings(self, render_config):
         """
         Check settings from the given render preset and report which ones are problematic.
