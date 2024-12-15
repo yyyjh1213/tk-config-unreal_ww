@@ -102,10 +102,10 @@ class AppLaunch(tank.Hook):
             else:
                 os.environ['UE_PYTHONPATH'] = unreal_python_dir
 
-        self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
-        self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
-        self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
-        self.parent.log_debug("sys.path: %s" % sys.path)
+            self.parent.log_debug("UNREAL ENGINE will be launched at WINDOWS OS")
+            self.parent.log_debug("HOOKS_APP_LAUNCH Updated Unreal Python paths:")
+            self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
+            self.parent.log_debug("sys.path: %s" % sys.path)
 
 
         if depart_confirm:
