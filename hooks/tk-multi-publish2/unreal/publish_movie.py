@@ -413,13 +413,15 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         
         self._render_format = render_format
 
-        # 변경된 부분: ue_folder_ext(폴더명), ue_file_ext(파일확장자) 분리
+        # 기존 템플릿 호환을 위해 ue_mov_ext 추가 설정
         if render_format == "exr":
             fields["ue_folder_ext"] = "exr"
             fields["ue_file_ext"] = "exr"
+            fields["ue_mov_ext"] = "exr"  # 기존 템플릿 사용 시 호환
         else:
             fields["ue_folder_ext"] = "mov"
             fields["ue_file_ext"] = "mov"
+            fields["ue_mov_ext"] = "mov"  # 기존 템플릿 사용 시 호환
 
         use_movie_render_queue = False
         render_presets = None
@@ -481,7 +483,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         self.save_ui_settings(settings)
         return True
-
     def _check_render_settings(self, render_config):
         """
         Check settings from the given render preset and report which ones are problematic.
