@@ -346,16 +346,13 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         publish_template = item.properties["publish_template"]
         context = item.context
 
-        # 폴더 생성 여부 확인
         if not context.filesystem_locations:
-            # 폴더가 아직 생성되지 않았을 경우, 엔티티 정보가 있다면 폴더 생성
             if context.entity:
                 tk = self.parent.sgtk
                 self.logger.info("No filesystem structure found for context. Creating folders for %s %s"
                                  % (context.entity["type"], context.entity["id"]))
                 tk.create_filesystem_structure(context.entity["type"], context.entity["id"])
                 
-                # 폴더 생성 후 다시 확인
                 if not context.filesystem_locations:
                     self.logger.error("Folders could not be created automatically. Please run folder creation manually.")
                     return False
@@ -364,7 +361,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                                   "Cannot create folders. Please ensure folders exist.")
                 return False
 
-        # 이제 폴더가 존재하므로 템플릿 필드 추출 시도
         fields = context.as_template_fields(publish_template)
 
         # 템플릿에서 Step이 필요한 경우
@@ -414,8 +410,15 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         if render_format not in ["exr", "mov"]:
             self.logger.error("Render Format setting must be 'exr' or 'mov'. Given: %s" % render_format)
             return False
+        
         self._render_format = render_format
-        fields["ue_mov_ext"] = render_format
+
+        # 변경된 부분: render_format에 따라 ue_mov_ext 필드를 설정
+        # exr일 경우 "exr", mov일 경우 "mov" 디렉토리로 매핑
+        if render_format == "exr":
+            fields["ue_mov_ext"] = "exr"
+        else:
+            fields["ue_mov_ext"] = "mov"
 
         use_movie_render_queue = False
         render_presets = None
@@ -443,7 +446,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             item.properties["frame_rate"] = fps.numerator
             self.logger.info("Sequence frame range: %d to %d at %d fps" % (start_frame, end_frame, fps.numerator))
 
-        # 모든 필드 설정 후 누락 키 확인
         missing_keys = publish_template.missing_keys(fields)
         if missing_keys:
             self.logger.error(
