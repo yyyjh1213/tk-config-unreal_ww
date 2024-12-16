@@ -192,6 +192,8 @@ settings.tk-multi-publish2.maya.asset_step:
       Render Map Path: "/Game/turntable/level/turntable.umap"
       Sequence Path: "/Game/turntable/sequence/turntable_sequence.turntable_sequence"
       Maya Assets Path: "/Game/Assets/{ue_sg_asset_type}/{ue_sg_asset_name}"
+      Version Up: true
+      Version Number: "{next_version}"
   - name: All Session Geometry
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session_geometry.py"
     settings:
