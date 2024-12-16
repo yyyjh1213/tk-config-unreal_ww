@@ -268,30 +268,10 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
     def accept(self, settings, item):
         """
-        Method called by the publisher to determine if an item is of any
-        interest to this plugin. Only items matching the filters defined via the
-        item_filters property will be presented to this method.
-
-        A publish task will be generated for each item accepted here. Returns a
-        dictionary with the following booleans:
-
-            - accepted: Indicates if the plugin is interested in this value at
-                all. Required.
-            - enabled: If True, the plugin will be enabled in the UI, otherwise
-                it will be disabled. Optional, True by default.
-            - visible: If True, the plugin will be visible in the UI, otherwise
-                it will be hidden. Optional, True by default.
-            - checked: If True, the plugin will be checked in the UI, otherwise
-                it will be unchecked. Optional, True by default.
-
-        :param settings: Dictionary of Settings. The keys are strings, matching
-            the keys returned in the settings property. The values are Setting
-            instances.
-        :param item: Item to process
-
-        :returns: dictionary with boolean keys accepted, required and enabled
+        Determines if the item is of any interest to this plugin.
+        Previously we tried to set a single publish_template here, 
+        but now we rely on validate() to choose the template based on render_format.
         """
-
         accepted = True
         checked = True
 
@@ -303,21 +283,12 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                 "accepted": False,
             }
 
-        publisher = self.parent
-        # ensure the publish template is defined
-        publish_template_setting = settings.get("Publish Template")
-        publish_template = publisher.get_template_by_name(publish_template_setting.value)
-        if not publish_template:
-            self.logger.debug(
-                "A publish template could not be determined for the "
-                "item. Not accepting the item."
-            )
-            accepted = False
+        # We no longer get the publish_template from settings here and set it in item.properties.
+        # Instead, we rely on render_format in validate() to determine which template to use.
 
-        # we've validated the work and publish templates. add them to the item properties
-        # for use in subsequent methods
-        item.properties["publish_template"] = publish_template
+        # Just load saved UI settings
         self.load_saved_ui_settings(settings)
+
         return {
             "accepted": accepted,
             "checked": checked
