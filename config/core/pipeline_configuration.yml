@@ -1,0 +1,18 @@
+# Configuration for this pipeline configuration
+type: dev
+plugin_id: basic.unreal
+
+# Name to be shown in ShotGrid Desktop
+display_name: "test_config_jh_ver1"
+
+# The path to the pipeline configuration
+path: "C:/shotgrid_config/tk-config-unreal_ww"
+
+# Project configuration
+project_name: "Remote_unreal_jh_ver1"
+project_id: 1
+
+# Location information
+pc_id: 1
+pc_name: "Primary"
+published_file_entity_type: "PublishedFile"
