@@ -437,13 +437,16 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
     def _publish_maya(self, settings, item):
         """
-        Publish and render movie from Maya
+        Publish and render movie from Maya using Unreal Engine
         """
         publish_path = item.properties["publish_path"]
         
         # Ensure the publish folder exists
         publish_folder = os.path.dirname(publish_path)
         self.parent.ensure_folder_exists(publish_folder)
+        
+        # 1. Export FBX for Unreal
+        fbx_path = os.path.splitext(publish_path)[0] + ".fbx"
         
         # Get the current camera
         active_panel = cmds.getPanel(withFocus=True)
@@ -458,48 +461,78 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                 camera = non_default_cameras[0]
             else:
                 camera = all_cameras[0]
-
+        
         # Set playback range
         start_frame = cmds.playbackOptions(query=True, minTime=True)
         end_frame = cmds.playbackOptions(query=True, maxTime=True)
-
-        # Store current viewport settings
-        current_panel = cmds.getPanel(withFocus=True)
-        original_settings = {}
-        if cmds.getPanel(typeOf=current_panel) == "modelPanel":
-            original_settings["displayAppearance"] = cmds.modelEditor(current_panel, query=True, displayAppearance=True)
-            original_settings["displayTextures"] = cmds.modelEditor(current_panel, query=True, displayTextures=True)
-            original_settings["displayLights"] = cmds.modelEditor(current_panel, query=True, displayLights=True)
-
-            # Set viewport for high quality playblast
-            cmds.modelEditor(current_panel, edit=True,
-                           displayAppearance="smoothShaded",
-                           displayTextures=True,
-                           displayLights="all")
-
+        
         try:
-            # Playblast options
-            playblast_options = {
-                "filename": publish_path,
-                "format": "qt",
-                "compression": "H.264",
-                "quality": 100,
-                "width": 1920,
-                "height": 1080,
-                "percent": 100,
-                "showOrnaments": False,
-                "clearCache": True,
-                "viewer": False,
-                "startTime": start_frame,
-                "endTime": end_frame,
-                "camera": camera,
-                "offScreen": True
-            }
-
-            # Create playblast
-            temp_movie = cmds.playblast(**playblast_options)
+            # Setup FBX export options
+            mel.eval('FBXExportFileVersion -v FBX201800')
+            mel.eval('FBXExportUpAxis -v y')
+            mel.eval('FBXExportScaleFactor -v 1.0')
+            mel.eval('FBXExportBakeComplexAnimation -v true')
+            mel.eval('FBXExportCameras -v true')
             
-            if os.path.exists(temp_movie):
+            # Select camera and related nodes
+            cmds.select(camera, replace=True)
+            
+            # Export FBX
+            cmds.file(fbx_path, 
+                     force=True, 
+                     options="v=0;", 
+                     type="FBX export", 
+                     preserveReferences=True, 
+                     exportSelected=True)
+            
+            if not UNREAL_AVAILABLE:
+                self.logger.error("Unreal engine not available for rendering")
+                return False
+                
+            # 2. Import FBX into Unreal and setup sequence
+            imported_asset = unreal.EditorAssetLibrary.import_asset(fbx_path)
+            if not imported_asset:
+                self.logger.error("Failed to import FBX into Unreal")
+                return False
+                
+            # Create level sequence
+            sequence_name = os.path.splitext(os.path.basename(publish_path))[0]
+            sequence = unreal.LevelSequence.create_level_sequence(sequence_name)
+            
+            # Add camera to sequence
+            camera_binding = sequence.add_possessable(imported_asset)
+            
+            # Set sequence range
+            sequence.set_playback_start(start_frame)
+            sequence.set_playback_end(end_frame)
+            
+            # 3. Render with Movie Render Queue
+            output_settings = {
+                "output_directory": publish_folder,
+                "output_resolution": unreal.IntPoint(1920, 1080),
+                "output_format": "mp4",
+                "framerate": unreal.FrameRate(24, 1),
+                "quality": 100
+            }
+            
+            # Setup render queue
+            queue = unreal.MoviePipelineQueue()
+            job = queue.allocate_new_job(unreal.MoviePipelineExecutorJob)
+            job.sequence = sequence
+            
+            # Configure render settings
+            config = job.get_configuration()
+            output_setting = config.find_or_add_setting_by_class(
+                unreal.MoviePipelineOutputSetting
+            )
+            for key, value in output_settings.items():
+                setattr(output_setting, key, value)
+            
+            # Start render
+            executor = unreal.MoviePipelinePIEExecutor()
+            success = executor.execute(queue)
+            
+            if success and os.path.exists(publish_path):
                 self.logger.info(
                     "Movie rendered successfully: %s" % publish_path
                 )
@@ -509,16 +542,18 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                     "Failed to render movie: %s" % publish_path
                 )
                 return False
-
+                
         except Exception as e:
             self.logger.error("Failed to render movie: %s" % str(e))
             return False
-
+            
         finally:
-            # Restore viewport settings
-            if cmds.getPanel(typeOf=current_panel) == "modelPanel":
-                for setting, value in original_settings.items():
-                    cmds.modelEditor(current_panel, edit=True, **{setting: value})
+            # Cleanup temporary FBX
+            if os.path.exists(fbx_path):
+                try:
+                    os.remove(fbx_path)
+                except:
+                    pass
 
     def finalize(self, settings, item):
         """
