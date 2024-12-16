@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.0",
+	"Category": "",
+	"Description": "Turntable rendering project for Maya assets",
+	"Plugins": [
+		{
+			"Name": "MovieRenderPipeline",
+			"Enabled": true
+		},
+		{
+			"Name": "FbxAutomationTestBuilder",
+			"Enabled": true
+		}
+	]
+}

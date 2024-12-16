@@ -83,31 +83,39 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         Dictionary defining the settings that this plugin expects to receive
         through the settings parameter in the accept, validate, publish and
         finalize methods.
-
-        A dictionary on the following form::
-
-            {
-                "Settings Name": {
-                    "type": "settings_type",
-                    "default": "default_value",
-                    "description": "One line description of the setting"
-            }
-
-        The type string should be one of the data types that toolkit accepts as
-        part of its environment configuration.
         """
-
-        # inherit the settings from the base publish plugin
-        base_settings = super(UnrealMoviePublishPlugin, self).settings or {}
-
-        # Here you can add any additional settings specific to this plugin
-        publish_template_setting = {
+        return {
             "Publish Template": {
                 "type": "template",
                 "default": None,
                 "description": "Template path for published work files. Should"
-                               "correspond to a template defined in "
-                               "templates.yml.",
+                "correspond to a template defined in "
+                "templates.yml.",
+            },
+            "Unreal Engine Version": {
+                "type": "str",
+                "default": "5.0",
+                "description": "Unreal Engine version to use for rendering.",
+            },
+            "Unreal Project Path Template": {
+                "type": "str",
+                "default": None,
+                "description": "Template path for the Unreal project to use for rendering.",
+            },
+            "Render Map Path": {
+                "type": "str",
+                "default": None,
+                "description": "Path to the map in Unreal project to use for rendering.",
+            },
+            "Sequence Path": {
+                "type": "str",
+                "default": None,
+                "description": "Path to the sequence in Unreal project to use for rendering.",
+            },
+            "Maya Assets Path": {
+                "type": "str",
+                "default": None,
+                "description": "Path in Unreal project where Maya assets will be imported.",
             },
             "Movie Render Queue Presets Path": {
                 "type": "string",
@@ -121,11 +129,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                 "description": "Optional folder to use as a root for publishes"
             }
         }
-
-        # update the base settings
-        base_settings.update(publish_template_setting)
-
-        return base_settings
 
     @property
     def item_filters(self):
@@ -554,6 +557,74 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                     os.remove(fbx_path)
                 except:
                     pass
+
+    def _create_unreal_sequence(self, fbx_path, publish_path):
+        """
+        Import FBX into Unreal and create a level sequence for rendering.
+        """
+        if not UNREAL_AVAILABLE:
+            self.logger.error("Unreal is not available!")
+            return
+
+        # Get settings
+        unreal_project = self.get_setting("Unreal Project Path Template")
+        render_map = self.get_setting("Render Map Path")
+        sequence_path = self.get_setting("Sequence Path")
+        assets_path = self.get_setting("Maya Assets Path")
+
+        # Import FBX
+        import_task = unreal.AssetImportTask()
+        import_task.filename = fbx_path
+        import_task.destination_path = assets_path
+        import_task.save = True
+        unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([import_task])
+
+        # Open the render map
+        unreal.EditorLevelLibrary.load_level(render_map)
+
+        # Get the imported asset
+        imported_asset = unreal.load_asset(f"{assets_path}/{os.path.splitext(os.path.basename(fbx_path))[0]}")
+        if not imported_asset:
+            self.logger.error("Failed to load imported asset!")
+            return
+
+        # Place the asset in the level
+        actor_location = unreal.Vector(0.0, 0.0, 0.0)
+        actor_rotation = unreal.Rotator(0.0, 0.0, 0.0)
+        actor = unreal.EditorLevelLibrary.spawn_actor_from_object(imported_asset, actor_location, actor_rotation)
+
+        # Load the sequence
+        sequence = unreal.load_asset(sequence_path)
+        if not sequence:
+            self.logger.error("Failed to load sequence!")
+            return
+
+        # Add the actor to the sequence
+        binding = unreal.MovieSceneBindingProxy()
+        binding.set_parent(sequence)
+        binding.add_possessable(actor)
+
+        # Configure Movie Render Queue
+        mrq = unreal.MovieRenderQueueSubsystem.get_movie_render_queue()
+        if not mrq:
+            self.logger.error("Failed to get Movie Render Queue subsystem!")
+            return
+
+        # Create render settings
+        settings = unreal.AutomatedLevelSequenceCapture()
+        settings.settings.output_file = publish_path
+        settings.settings.output_format = unreal.MoviePipelineOutputFormat.MP4
+        settings.settings.resolution.x = 1920
+        settings.settings.resolution.y = 1080
+        settings.settings.frame_rate = 30.0
+
+        # Add job to queue and render
+        job = mrq.add_job(settings)
+        if not job:
+            self.logger.error("Failed to add render job to queue!")
+            return
+
+        mrq.render_queue_jobs()
 
     def finalize(self, settings, item):
         """
