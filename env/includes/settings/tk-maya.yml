@@ -35,7 +35,7 @@ settings.tk-maya.asset:
     tk-multi-shotgunpanel: "@settings.tk-multi-shotgunpanel"
     tk-multi-workfiles2: "@settings.tk-multi-workfiles2.launch_at_startup"
   menu_favourites:
-  - {app_instance: tk-multi-workfiles2, name: File Open...}
+  # - {app_instance: tk-multi-workfiles2, name: File Open...}
   debug_logging: false
   location: "@engines.tk-maya.location"
 
@@ -73,7 +73,7 @@ settings.tk-maya.project:
     tk-multi-shotgunpanel: "@settings.tk-multi-shotgunpanel"
     tk-multi-workfiles2: "@settings.tk-multi-workfiles2.launch_at_startup"
   menu_favourites:
-  - {app_instance: tk-multi-workfiles2, name: File Open...}
+  # - {app_instance: tk-multi-workfiles2, name: File Open...}
   location: "@engines.tk-maya.location"
 
 # sequence
@@ -85,7 +85,7 @@ settings.tk-maya.sequence:
     tk-multi-shotgunpanel: "@settings.tk-multi-shotgunpanel"
     tk-multi-workfiles2: "@settings.tk-multi-workfiles2.launch_at_startup"
   menu_favourites:
-  - {app_instance: tk-multi-workfiles2, name: File Open...}
+  # - {app_instance: tk-multi-workfiles2, name: File Open...}
   location: "@engines.tk-maya.location"
 
 # shot
@@ -97,7 +97,7 @@ settings.tk-maya.shot:
     tk-multi-shotgunpanel: "@settings.tk-multi-shotgunpanel"
     tk-multi-workfiles2: "@settings.tk-multi-workfiles2.launch_at_startup"
   menu_favourites:
-  - {app_instance: tk-multi-workfiles2, name: File Open...}
+  # - {app_instance: tk-multi-workfiles2, name: File Open...}
   location: "@engines.tk-maya.location"
 
 # shot_step
