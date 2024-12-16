@@ -21,6 +21,14 @@ except ImportError:
     UNREAL_AVAILABLE = False
     unreal = None
 
+# Import maya module only when in Maya environment
+try:
+    import maya.cmds as cmds
+    import maya.mel as mel
+    MAYA_AVAILABLE = True
+except ImportError:
+    MAYA_AVAILABLE = False
+
 # Local storage path field for known Oses.
 _OS_LOCAL_STORAGE_PATH_FIELD = {
     "darwin": "mac_path",
@@ -359,8 +367,26 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
     def validate(self, settings, item):
         """
-        Validates the given item to check that it is ok to publish. Returns a
-        boolean to indicate validity.
+        Validates the given item to check that it is ok to publish.
+        """
+        if not super(UnrealMoviePublishPlugin, self).validate(settings, item):
+            return False
+
+        if UNREAL_AVAILABLE:
+            return self._validate_unreal(settings, item)
+        elif MAYA_AVAILABLE:
+            return self._validate_maya(settings, item)
+        else:
+            self.logger.error("Neither Unreal nor Maya environment detected")
+            return False
+
+    def _validate_unreal(self, settings, item):
+        """
+        Validates the given item to check that it is ok to publish.
+
+        This method is called in order to validate that a given item is ok to
+        publish, e.g. ensuring that it's at a level of completion suitable for
+        final approval.
 
         :param settings: Dictionary of Settings. The keys are strings, matching
             the keys returned in the settings property. The values are `Setting`
@@ -529,7 +555,37 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         self.save_ui_settings(settings)
         return True
 
+    def _validate_maya(self, settings, item):
+        """
+        Validate Maya specific settings and requirements
+        """
+        # Get the path in a normalized state. no trailing separator, separators are
+        # appropriate for current os, no double separators, etc.
+        path = sgtk.util.ShotgunPath.normalize(item.properties["path"])
+
+        # Check that the camera exists
+        if not cmds.ls(type="camera"):
+            self.logger.error("No camera found in the scene")
+            return False
+
+        return True
+
     def publish(self, settings, item):
+        """
+        Executes the publish logic for the given item and settings.
+        """
+        if UNREAL_AVAILABLE:
+            self._publish_unreal(settings, item)
+        elif MAYA_AVAILABLE:
+            self._publish_maya(settings, item)
+        else:
+            self.logger.error("Neither Unreal nor Maya environment detected")
+            return False
+
+        # Let the base class register the publish
+        super(UnrealMoviePublishPlugin, self).publish(settings, item)
+
+    def _publish_unreal(self, settings, item):
         """
         Executes the publish logic for the given item and settings.
 
@@ -648,6 +704,72 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             "sg_uploaded_movie"
         )
         self.logger.info("Upload complete!")
+
+    def _publish_maya(self, settings, item):
+        """
+        Publish and render movie from Maya
+        """
+        # Get the path in a normalized state
+        path = sgtk.util.ShotgunPath.normalize(item.properties["path"])
+        publish_path = item.properties["publish_path"]
+        
+        # Ensure the publish folder exists
+        publish_folder = os.path.dirname(publish_path)
+        self.parent.ensure_folder_exists(publish_folder)
+        
+        # Get the current camera
+        cameras = cmds.ls(type="camera")
+        active_panel = cmds.getPanel(withFocus=True)
+        if cmds.getPanel(typeOf=active_panel) == "modelPanel":
+            camera = cmds.modelPanel(active_panel, query=True, camera=True)
+        else:
+            camera = cameras[0]
+
+        # Set playback range
+        start_frame = cmds.playbackOptions(query=True, minTime=True)
+        end_frame = cmds.playbackOptions(query=True, maxTime=True)
+
+        # Playblast options
+        playblast_options = {
+            "filename": publish_path,
+            "format": "qt",
+            "compression": "H.264",
+            "quality": 100,
+            "width": 1920,
+            "height": 1080,
+            "percent": 100,
+            "showOrnaments": False,
+            "clearCache": True,
+            "viewer": False,
+            "startTime": start_frame,
+            "endTime": end_frame,
+            "camera": camera,
+            "offScreen": True
+        }
+
+        try:
+            # Make sure viewport is in smooth shade mode
+            current_panel = cmds.getPanel(withFocus=True)
+            if cmds.getPanel(typeOf=current_panel) == "modelPanel":
+                cmds.modelEditor(current_panel, edit=True, displayAppearance="smoothShaded")
+
+            # Create playblast
+            temp_movie = cmds.playblast(**playblast_options)
+            
+            if os.path.exists(temp_movie):
+                self.logger.info(
+                    "Movie rendered successfully: %s" % publish_path
+                )
+                return True
+            else:
+                self.logger.error(
+                    "Failed to render movie: %s" % publish_path
+                )
+                return False
+
+        except Exception as e:
+            self.logger.error("Failed to render movie: %s" % str(e))
+            return False
 
     def finalize(self, settings, item):
         """

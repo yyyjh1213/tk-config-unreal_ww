@@ -165,25 +165,22 @@ settings.tk-multi-publish2.maya.asset_step:
   collector_settings:
       Work Template: maya_asset_work
   publish_plugins:
-  - name: Publish to Flow Production Tracking
+  - name: Publish to ShotGrid
     hook: "{self}/publish_file.py"
     settings: {}
-  - name: Render for review
-    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/publish_movie.py"
-    settings:
-        Publish Template: maya_asset_review  
-  - name: Export FBX for Unreal
-    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/maya_publish_asset.py"
-    settings:
-      Publish Template: maya_asset_publish
-  - name: Upload for review
-    hook: "{self}/upload_version.py"
+  - name: Additional Items
+    hook: "{self}/publish_file.py"
     settings: {}
-  - name: Publish to Flow Production Tracking
-    hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
-    settings:
+    children:
+    - name: Publish FBX to ShotGrid
+      hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/maya_publish_asset.py"
+      settings:
         Publish Template: maya_asset_publish
-  - name: Publish to Flow Production Tracking
+    - name: Publish and Submit for Review
+      hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/publish_movie.py"
+      settings:
+        Publish Template: maya_asset_review
+  - name: All Session Geometry
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session_geometry.py"
     settings:
         Publish Template: asset_alembic_cache
