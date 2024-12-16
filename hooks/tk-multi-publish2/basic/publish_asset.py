@@ -11,6 +11,7 @@
 import tank
 import os
 import sys
+import datetime
 
 # Local storage path field for known Oses.
 _OS_LOCAL_STORAGE_PATH_FIELD = {
@@ -104,13 +105,6 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             self.logger.error("컨텍스트를 찾을 수 없습니다.")
             return False
 
-        # 필수 필드 확인
-        required_fields = ["sg_asset_type", "Asset", "Step"]
-        for field in required_fields:
-            if not context.entity or field not in context.entity:
-                self.logger.error("컨텍스트에서 %s 필드를 찾을 수 없습니다." % field)
-                return False
-
         # 에셋 경로 확인
         asset_path = item.properties.get("unreal_asset_path")
         if not UNREAL_AVAILABLE:
@@ -129,14 +123,37 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             self.logger.error("퍼블리시 템플릿을 찾을 수 없습니다.")
             return False
 
+        # 현재 날짜 가져오기
+        current_date = datetime.datetime.now()
+
         # 템플릿 필드 설정
         fields = {
-            "sg_asset_type": context.entity["sg_asset_type"],
-            "Asset": context.entity["code"],
-            "Step": context.step["name"],
-            "version": publisher.util.get_next_version_number(item.properties["path"]),
-            "name": os.path.splitext(os.path.basename(asset_path))[0]
+            "name": os.path.splitext(os.path.basename(asset_path))[0],
+            "YYYY": current_date.year,
+            "MM": current_date.month,
+            "DD": current_date.day
         }
+
+        # 컨텍스트에서 필드 가져오기
+        if context.entity:
+            fields["sg_asset_type"] = context.entity.get("sg_asset_type")
+            fields["Asset"] = context.entity.get("code")
+        
+        if context.step:
+            fields["Step"] = context.step.get("name")
+
+        # 버전 필드 설정
+        fields["version"] = 1
+        if "version" not in fields and item.properties.get("path"):
+            fields["version"] = publisher.util.get_next_version_number(item.properties["path"])
+
+        # 필수 필드 확인
+        required_fields = ["sg_asset_type", "Asset", "Step", "version"]
+        missing_fields = [field for field in required_fields if not fields.get(field)]
+        
+        if missing_fields:
+            self.logger.error("다음 필수 필드가 없습니다: %s" % ", ".join(missing_fields))
+            return False
 
         # 퍼블리시 경로 생성
         try:
