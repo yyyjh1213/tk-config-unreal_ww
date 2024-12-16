@@ -168,11 +168,18 @@ settings.tk-multi-publish2.maya.asset_step:
   - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py"
     settings: {}
+  - name: Render for review
+    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/publish_movie.py"
+    settings:
+        Publish Template: maya_asset_review  
   - name: Export FBX for Unreal
     hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/maya_publish_asset.py"
     settings:
       Publish Template: maya_asset_publish
-      Publish Folder: ""
+  - name: Publish to Flow Production Tracking
+    hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
+    settings:
+        Publish Template: maya_asset_publish
   help_url: *help_url
   location: "@apps.tk-multi-publish2.location"
 
