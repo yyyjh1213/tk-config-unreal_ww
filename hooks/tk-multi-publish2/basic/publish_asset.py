@@ -103,6 +103,19 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         """
         publisher = self.parent
         engine = publisher.engine
+
+        # 컨텍스트 확인
+        context = item.context
+        if not context:
+            self.logger.error("컨텍스트를 찾을 수 없습니다.")
+            return False
+
+        # 컨텍스트 디버그 로깅
+        self.logger.debug("Context: %s" % context)
+        if context.entity:
+            self.logger.debug("Entity: %s" % context.entity)
+        if context.step:
+            self.logger.debug("Step: %s" % context.step)
         
         # 에셋 경로 확인
         asset_path = item.properties.get("unreal_asset_path")
@@ -134,11 +147,16 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             "version": 1  # 기본 버전
         }
 
-        # settings에서 Additional Fields 가져오기
-        additional_fields = settings.get("Additional Fields", {})
-        if additional_fields and additional_fields.value:
-            self.logger.debug("Additional Fields from settings: %s" % additional_fields.value)
-            fields.update(additional_fields.value)
+        # 컨텍스트에서 필드 가져오기
+        if context.entity:
+            fields["sg_asset_type"] = context.entity.get("sg_asset_type", "")
+            fields["Asset"] = context.entity.get("code", "")
+
+        if context.step:
+            fields["Step"] = context.step.get("name", "")
+
+        # 필드 디버그 로깅
+        self.logger.debug("Fields before validation: %s" % fields)
 
         # 필수 필드 확인
         required_fields = ["sg_asset_type", "Asset", "Step", "version"]
@@ -157,6 +175,7 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             self.logger.debug("생성된 퍼블리시 경로: %s" % publish_path)
         except Exception as e:
             self.logger.error("퍼블리시 경로 생성 중 오류 발생: %s" % str(e))
+            self.logger.debug("사용된 필드: %s" % fields)
             return False
 
         return True
