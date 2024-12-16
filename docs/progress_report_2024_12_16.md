@@ -1,66 +1,88 @@
-# Progress Report - 2024-12-16
+# 작업 보고서 - 2024-12-16
 
-## Maya Publish Menu Issues Resolution
+## 마야 퍼블리시 메뉴 이슈 해결
 
-### Issues Addressed
+### 해결된 이슈
 
-1. **Undefined Reference Error**
-   - **Issue**: `settings.tk-multi-publish2.maya.asset_step.unreal` 참조를 찾을 수 없음
-   - **Resolution**: 
-     - `tk-maya.yml`의 publish 설정을 올바른 참조로 수정
-     - `unreal/settings/tk-multi-publish2.yml`에 Maya asset step unreal 설정 추가
+1. **정의되지 않은 참조 오류**
+   - **이슈**: `settings.tk-multi-publish2.maya.asset_step.unreal` 참조를 찾을 수 없음
+   - **해결**: 
+     - `tk-maya.yml`의 퍼블리시 설정을 올바른 참조로 수정
+     - `unreal/settings/tk-multi-publish2.yml`에 마야 어셋 스텝 언리얼 설정 추가
 
-2. **Legacy Breakdown Location Error**
-   - **Issue**: `settings.tk-multi-breakdown.location` 참조를 찾을 수 없음
-   - **Resolution**:
-     - `tk-maya.yml`의 breakdown 설정을 `@apps.tk-multi-breakdown.location`으로 수정
+2. **레거시 브레이크다운 위치 오류**
+   - **이슈**: `settings.tk-multi-breakdown.location` 참조를 찾을 수 없음
+   - **해결**:
+     - `tk-maya.yml`의 브레이크다운 설정을 `@apps.tk-multi-breakdown.location`으로 수정
      - 올바른 app_locations.yml 참조 사용
 
-3. **Turntable Publish Error**
-   - **Issue**: Unreal Engine 버전 불일치로 인한 임시 디렉토리 접근 오류
-   - **Resolution**:
+3. **턴테이블 퍼블리시 오류**
+   - **이슈**: 언리얼 엔진 버전 불일치로 인한 임시 디렉토리 접근 오류
+   - **해결**:
      - `C:\Temp` 디렉토리 생성
-     - Unreal Engine 버전을 5.0에서 5.3으로 업데이트
-     - Turntable publish 템플릿 경로 수정:
+     - 언리얼 엔진 버전을 5.0에서 5.3으로 업데이트
+     - 턴테이블 퍼블리시 템플릿 경로 수정:
        ```yaml
        unreal.maya_turntable_publish:
            definition: '@asset_root/review/{name}.{Step}.turntable_v{version}.mov'
        ```
 
-4. **FBX Export Path Issue**
-   - **Issue**: FBX 파일이 원하는 경로에 저장되지 않음
-   - **Resolution**:
-     - FBX publish 템플릿 경로 수정:
+4. **FBX 내보내기 경로 이슈**
+   - **이슈**: FBX 파일이 원하는 경로에 저장되지 않음
+   - **해결**:
+     - FBX 퍼블리시 템플릿 경로 수정:
        ```yaml
        unreal.maya_asset_fbx_publish:
            definition: '@asset_root/pub/unreal/fbx/{name}.{Step}.v{version}.fbx'
        ```
 
-### Modified Files
+## FBX 퍼블리시 경로 설정 업데이트
+
+### 변경 사항
+
+1. **FBX 내보내기 경로 업데이트**
+   - **문제**: FBX 파일이 올바른 디렉토리 구조에 저장되지 않음
+   - **해결**: `templates.yml`의 FBX 퍼블리시 템플릿 경로 수정:
+     ```yaml
+     unreal.maya_asset_fbx_publish:
+         definition: '@asset_root/pub/unreal/fbx/{name}.{Step}.v{version}.fbx'
+     ```
+   - **영향**: FBX 파일이 이제 전용 unreal/fbx 하위 디렉토리에 저장됨
+
+### 수정된 파일
 
 1. `env/includes/settings/tk-maya.yml`
-   - Publish 설정 참조 수정
-   - Legacy Breakdown 설정 추가 및 수정
+   - 퍼블리시 설정 참조 수정
+   - 레거시 브레이크다운 설정 추가 및 수정
 
 2. `env/includes/unreal/settings/tk-multi-publish2.yml`
-   - Maya asset step unreal 설정 추가
-   - Unreal Engine 버전 업데이트
+   - 마야 어셋 스텝 언리얼 설정 추가
+   - 언리얼 엔진 버전 업데이트
 
 3. `env/includes/unreal/templates.yml`
-   - Turntable publish 템플릿 경로 수정
-   - FBX publish 템플릿 경로 수정
+   - 턴테이블 퍼블리시 템플릿 경로 수정
+   - FBX 퍼블리시 템플릿 경로 수정
+   - 새로운 경로 구조: `@asset_root/pub/unreal/fbx/{name}.{Step}.v{version}.fbx`
 
-### Next Steps
+### 다음 단계
 
-1. **Testing Required**:
-   - Maya에서 새 버전으로 파일 저장 후 publish 테스트
-   - FBX export 경로 확인
-   - Turntable 렌더링 테스트
+1. **테스트 필요**:
+   - 마야에서 새로운 버전으로 파일 저장 후 퍼블리시 테스트
+   - FBX 내보내기 경로 확인
+   - 턴테이블 렌더링 테스트
 
-2. **Documentation**:
+2. **검증**:
+   - 마야에서 언리얼까지 전체 퍼블리시 파이프라인 테스트
+   - 언리얼 프로젝트에서 FBX 파일 접근 가능 여부 확인
+
+3. **문서화**:
    - 수정된 설정들에 대한 문서화
    - 사용자 가이드 업데이트
+   - 새로운 경로 구조에 대한 문서 업데이트
+   - 팀원들에게 변경 사항 공유
 
-3. **Monitoring**:
+4. **모니터링**:
    - 수정된 설정들이 정상적으로 작동하는지 모니터링
    - 추가 오류 발생 시 즉시 대응
+   - FBX 퍼블리시 작업 모니터링
+   - 새로운 디렉토리 구조에 대한 피드백 수집
