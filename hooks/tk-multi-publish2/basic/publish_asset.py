@@ -99,126 +99,56 @@ class UnrealAssetPublishPlugin(HookBaseClass):
     def validate(self, settings, item):
         """
         Validates the given item to check that it is ok to publish.
-        Returns a boolean to indicate validity.
         """
         publisher = self.parent
-        engine = publisher.engine
-
-        # Enhanced context validation
-        context = self.parent.context
-        if not context:
-            self.logger.error("No context found!")
-            return False
-            
-        if not context.entity:
-            self.logger.error("No entity found in context!")
-            return False
-            
-        if not context.step:
-            self.logger.error("No step found in context!")
-            return False
-
-        # Detailed context logging
-        self.logger.debug("=== Context Details ===")
-        self.logger.debug(f"Context: {context}")
-        self.logger.debug(f"Context Entity: {context.entity}")
-        self.logger.debug(f"Context Step: {context.step}")
-        self.logger.debug(f"Context Task: {context.task}")
-        self.logger.debug(f"Context User: {context.user}")
-        self.logger.debug(f"Context Project: {context.project}")
         
-        # Get template and validate
-        publish_template_name = settings["Publish Template"].value
-        publish_template = publisher.get_template_by_name(publish_template_name)
-        
+        # Get the path in a normalized state. No trailing separator, separators are appropriate
+        # for current os, no double separators, etc.
+        path = tank.util.ShotgunPath.normalize(item.properties.get("path"))
+
+        # Get the publish template from the settings
+        publish_template = publisher.get_template_by_name(settings.get("Publish Template").value)
         if not publish_template:
-            self.logger.error(f"Could not find template '{publish_template_name}'")
+            self.logger.debug("No publish template set for item")
             return False
 
-        self.logger.debug(f"Template Name: {publish_template_name}")
-        self.logger.debug(f"Template: {publish_template}")
-        self.logger.debug(f"Template Keys: {publish_template.keys}")
+        # Get context
+        context = item.context or publisher.context
         
+        # Get fields from context
+        fields = context.as_template_fields(publish_template)
+        
+        # Add additional required fields
+        fields.update({
+            "name": item.properties.get("name", "default"),
+            "version": item.properties.get("version_number", 1),
+            "Step": context.step.get("short_name") if context.step else "publish",
+            "Asset": context.entity.get("code") if context.entity else item.properties.get("name", "default"),
+            "sg_asset_type": context.entity.get("sg_asset_type") if context.entity else "Asset"
+        })
+
+        # Add date fields
+        current_time = datetime.datetime.now()
+        fields["YYYY"] = current_time.year
+        fields["MM"] = current_time.month
+        fields["DD"] = current_time.day
+
+        # Log the fields for debugging
+        self.logger.debug("Context: %s" % context)
+        self.logger.debug("Template fields: %s" % fields)
+        self.logger.debug("Template keys: %s" % publish_template.keys)
+
         try:
-            # Get context fields first
-            fields = {}
-            
-            # Get entity fields
-            if context.entity:
-                self.logger.debug(f"Entity type: {context.entity['type']}")
-                self.logger.debug(f"Entity data: {context.entity}")
-                
-                # Get Asset name
-                if context.entity.get("code"):
-                    fields["Asset"] = context.entity["code"]
-                elif context.entity.get("name"):
-                    fields["Asset"] = context.entity["name"]
-                else:
-                    self.logger.error("Could not find asset name in entity")
-                    return False
-                    
-                # Get asset type
-                fields["sg_asset_type"] = context.entity.get("sg_asset_type", "")
-                
-            else:
-                self.logger.error("No entity in context!")
-                return False
-                
-            # Get Step name
-            if context.step:
-                self.logger.debug(f"Step data: {context.step}")
-                if context.step.get("short_name"):
-                    fields["Step"] = context.step["short_name"]
-                elif context.step.get("name"):
-                    fields["Step"] = context.step["name"]
-                else:
-                    self.logger.error("Could not find step name")
-                    return False
-            else:
-                self.logger.error("No step in context!")
-                return False
-                
-            # Add other required fields
-            fields.update({
-                "name": os.path.splitext(os.path.basename(item.properties.get("unreal_asset_path", "")))[0],
-                "version": 1
-            })
-            
-            # Log current field values
-            self.logger.debug("=== Current Field Values ===")
-            for key, value in fields.items():
-                self.logger.debug(f"{key}: {value}")
-            
-            # Validate all required fields are present and have values
-            missing_fields = []
-            for key in publish_template.keys:
-                if key not in fields:
-                    missing_fields.append(key)
-                elif not fields[key]:
-                    missing_fields.append(key)
-            
-            if missing_fields:
-                self.logger.error("=== Missing Fields ===")
-                self.logger.error(f"The following required fields are missing: {missing_fields}")
-                self.logger.error(f"Current fields: {fields}")
-                self.logger.error(f"Template keys: {publish_template.keys}")
-                return False
-
-            # Try to create publish path
             publish_path = publish_template.apply_fields(fields)
-            self.logger.debug(f"Generated publish path: {publish_path}")
-            
-            item.properties["path"] = publish_path
             item.properties["publish_path"] = publish_path
-            
-            return True
-
-        except Exception as e:
-            self.logger.error("=== Template Resolution Error ===")
-            self.logger.error(f"Error: {str(e)}")
-            self.logger.error(f"Context: {context}")
-            self.logger.error(f"Fields: {fields if 'fields' in locals() else 'Fields not created'}")
+            self.logger.debug("Publishing to path: %s" % publish_path)
+        except tank.TankError as e:
+            self.logger.error("Failed to resolve publish path: %s" % e)
+            self.logger.error("Context fields: %s" % context.as_template_fields(publish_template))
+            self.logger.error("All fields: %s" % fields)
             return False
+
+        return True
 
     def publish(self, settings, item):
         """
