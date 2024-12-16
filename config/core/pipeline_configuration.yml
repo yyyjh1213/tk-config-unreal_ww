@@ -1,6 +1,6 @@
 # Configuration for this pipeline configuration
 type: dev
-plugin_id: basic.unreal
+plugin_id: basic
 
 # Name to be shown in ShotGrid Desktop
 display_name: "test_config_jh_ver1"
