@@ -3,7 +3,7 @@ type: dev
 plugin_ids: basic.*
 
 # 프로젝트 경로 설정
-project_name: "Remote_unreal_jh"
+project_name: "Remote_unreal_jh_ver1"
 project_id: 1
 
 # 필수 경로 설정
