@@ -105,9 +105,17 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         engine = publisher.engine
 
         # Enhanced context validation
-        context = item.context
+        context = self.parent.context
         if not context:
-            self.logger.error("Context is missing")
+            self.logger.error("No context found!")
+            return False
+            
+        if not context.entity:
+            self.logger.error("No entity found in context!")
+            return False
+            
+        if not context.step:
+            self.logger.error("No step found in context!")
             return False
 
         # Detailed context logging
@@ -152,15 +160,36 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         self.logger.debug(f"Template: {publish_template}")
         self.logger.debug(f"Template Keys: {publish_template.keys}")
 
-        # Prepare fields with enhanced validation
+        # Get current date components
+        current_time = datetime.datetime.now()
+        
+        # Prepare fields with enhanced validation and logging
         try:
             fields = {
                 "Asset": context.entity.get("code"),
                 "Step": context.step.get("name"),
                 "sg_asset_type": context.entity.get("sg_asset_type"),
                 "name": os.path.splitext(os.path.basename(item.properties.get("unreal_asset_path", "")))[0],
-                "version": 1
+                "version": 1,
+                # Add date fields
+                "YYYY": current_time.year,
+                "MM": current_time.month,
+                "DD": current_time.day
             }
+            
+            # Validate critical fields
+            critical_fields = ["Asset", "Step", "sg_asset_type", "name"]
+            missing_critical = [f for f in critical_fields if not fields.get(f)]
+            if missing_critical:
+                self.logger.error(f"Missing critical context fields: {missing_critical}")
+                self.logger.error(f"Context Entity: {context.entity}")
+                self.logger.error(f"Context Step: {context.step}")
+                return False
+
+            # Log current field values
+            self.logger.debug("=== Current Field Values ===")
+            for key, value in fields.items():
+                self.logger.debug(f"{key}: {value}")
             
             # Additional fields from settings
             additional_fields = settings.get("Additional Fields", {})
