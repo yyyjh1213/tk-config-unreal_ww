@@ -56,7 +56,8 @@ paths:
         definition: '@asset_root/review/{name}.{Step}.turntable_v{version}.mov'
     # The location of published assets from Unreal
     unreal.asset_publish:
-        definition: '@asset_root/pub/unreal/{Step}/{Asset}_{name}_v{version}.fbx'
+        definition: '@asset_root/pub/unreal/{sg_asset_type}/{Asset}/{name}.{Step}.v{version}.fbx'
+        root_name: project_root
 
 strings:
    # entity-specific templates for importing files into the Unreal content browser

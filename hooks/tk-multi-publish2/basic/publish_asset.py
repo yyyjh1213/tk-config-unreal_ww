@@ -127,26 +127,6 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         self.logger.debug(f"Context User: {context.user}")
         self.logger.debug(f"Context Project: {context.project}")
         
-        # Validate entity fields
-        if context.entity:
-            self.logger.debug("=== Entity Fields ===")
-            for field in ['type', 'id', 'name', 'code', 'sg_asset_type']:
-                value = context.entity.get(field)
-                self.logger.debug(f"Entity {field}: {value}")
-        else:
-            self.logger.error("Entity not found in context")
-            return False
-
-        # Validate step fields
-        if context.step:
-            self.logger.debug("=== Step Fields ===")
-            for field in ['type', 'id', 'name', 'code']:
-                value = context.step.get(field)
-                self.logger.debug(f"Step {field}: {value}")
-        else:
-            self.logger.error("Step not found in context")
-            return False
-
         # Get template and validate
         publish_template_name = settings["Publish Template"].value
         publish_template = publisher.get_template_by_name(publish_template_name)
@@ -160,44 +140,68 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         self.logger.debug(f"Template Keys: {publish_template.keys}")
         
         try:
-            # Basic required fields
-            fields = {
+            # Get context fields first
+            fields = {}
+            
+            # Get entity fields
+            if context.entity:
+                self.logger.debug(f"Entity type: {context.entity['type']}")
+                self.logger.debug(f"Entity data: {context.entity}")
+                
+                # Get Asset name
+                if context.entity.get("code"):
+                    fields["Asset"] = context.entity["code"]
+                elif context.entity.get("name"):
+                    fields["Asset"] = context.entity["name"]
+                else:
+                    self.logger.error("Could not find asset name in entity")
+                    return False
+                    
+                # Get asset type
+                fields["sg_asset_type"] = context.entity.get("sg_asset_type", "")
+                
+            else:
+                self.logger.error("No entity in context!")
+                return False
+                
+            # Get Step name
+            if context.step:
+                self.logger.debug(f"Step data: {context.step}")
+                if context.step.get("short_name"):
+                    fields["Step"] = context.step["short_name"]
+                elif context.step.get("name"):
+                    fields["Step"] = context.step["name"]
+                else:
+                    self.logger.error("Could not find step name")
+                    return False
+            else:
+                self.logger.error("No step in context!")
+                return False
+                
+            # Add other required fields
+            fields.update({
                 "name": os.path.splitext(os.path.basename(item.properties.get("unreal_asset_path", "")))[0],
                 "version": 1
-            }
+            })
             
-            # Get entity fields safely
-            if context.entity:
-                if hasattr(context.entity, "code"):
-                    fields["Asset"] = context.entity.code
-                else:
-                    fields["Asset"] = context.entity.get("code", "")
-                    
-            # Get step fields safely
-            if context.step:
-                if hasattr(context.step, "name"):
-                    fields["Step"] = context.step.name
-                else:
-                    fields["Step"] = context.step.get("name", "")
-            
-            # Log all available fields
-            self.logger.debug("=== Available Template Fields ===")
-            for key in publish_template.keys:
-                self.logger.debug(f"Template requires: {key}")
-                
+            # Log current field values
             self.logger.debug("=== Current Field Values ===")
             for key, value in fields.items():
                 self.logger.debug(f"{key}: {value}")
             
-            # Validate required fields
+            # Validate all required fields are present and have values
             missing_fields = []
             for key in publish_template.keys:
-                if key not in fields or not fields[key]:
+                if key not in fields:
                     missing_fields.append(key)
-                    
+                elif not fields[key]:
+                    missing_fields.append(key)
+            
             if missing_fields:
-                self.logger.error(f"Missing required fields for template: {missing_fields}")
+                self.logger.error("=== Missing Fields ===")
+                self.logger.error(f"The following required fields are missing: {missing_fields}")
                 self.logger.error(f"Current fields: {fields}")
+                self.logger.error(f"Template keys: {publish_template.keys}")
                 return False
 
             # Try to create publish path
@@ -210,8 +214,10 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             return True
 
         except Exception as e:
-            self.logger.error(f"Error resolving template: {str(e)}")
-            self.logger.error(f"Current fields: {fields}")
+            self.logger.error("=== Template Resolution Error ===")
+            self.logger.error(f"Error: {str(e)}")
+            self.logger.error(f"Context: {context}")
+            self.logger.error(f"Fields: {fields if 'fields' in locals() else 'Fields not created'}")
             return False
 
     def publish(self, settings, item):
