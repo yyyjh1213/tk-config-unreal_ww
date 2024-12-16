@@ -116,6 +116,15 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         """
         publisher = self.parent
         
+        # Get the publish template from the settings
+        publish_template_name = settings.get("Publish Template").value
+        publish_template = publisher.get_template_by_name(publish_template_name)
+        if not publish_template:
+            self.logger.error("No publish template found: %s" % publish_template_name)
+            return False
+            
+        self.logger.debug("Using publish template: %s" % publish_template)
+        
         # Get the context from the item or parent
         context = item.context or publisher.context
         if not context:
@@ -124,51 +133,91 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             
         self.logger.debug("Validating with context: %s" % context)
         
-        # Validate entity
-        if not context.entity:
+        # Initialize fields dictionary
+        fields = {}
+        
+        # Try to get fields from context first
+        try:
+            fields = context.as_template_fields(publish_template)
+            self.logger.debug("Fields from context: %s" % fields)
+        except Exception as e:
+            self.logger.debug("Unable to get fields from context: %s" % e)
+        
+        # Get fields from entity
+        if context.entity:
+            self.logger.debug("Entity fields: %s" % context.entity)
+            if not isinstance(context.entity, dict):
+                self.logger.error("Context entity is not a dictionary")
+                return False
+                
+            fields["Asset"] = context.entity.get("code")
+            fields["sg_asset_type"] = context.entity.get("sg_asset_type")
+            
+            if not fields.get("Asset") or not fields.get("sg_asset_type"):
+                self.logger.error("Missing required entity fields. Asset: %s, sg_asset_type: %s" % 
+                                (fields.get("Asset"), fields.get("sg_asset_type")))
+                return False
+        else:
             self.logger.error("Context has no entity")
             return False
             
-        self.logger.debug("Entity fields: %s" % context.entity)
-        
-        # Validate required entity fields
-        required_entity_fields = ["sg_asset_type", "code"]
-        for field in required_entity_fields:
-            if not context.entity.get(field):
-                self.logger.error("Required entity field '%s' is missing" % field)
+        # Get fields from step
+        if context.step:
+            self.logger.debug("Step fields: %s" % context.step)
+            if not isinstance(context.step, dict):
+                self.logger.error("Context step is not a dictionary")
                 return False
                 
-        # Validate step
-        if not context.step:
+            fields["Step"] = context.step.get("short_name")
+            if not fields.get("Step"):
+                self.logger.error("Missing required step field: short_name")
+                return False
+        else:
             self.logger.error("Context has no step")
             return False
             
-        self.logger.debug("Step fields: %s" % context.step)
+        # Get version from path or default to 1
+        path = item.properties.get("path")
+        version = 1
+        if path:
+            import re
+            version_pattern = re.compile(r"\.?v(\d+)", re.IGNORECASE)
+            match = version_pattern.search(path)
+            if match:
+                version = int(match.group(1))
+        fields["version"] = version
         
-        # Validate required step fields
-        if not context.step.get("short_name"):
-            self.logger.error("Required step field 'short_name' is missing")
+        # Get name from item properties
+        fields["name"] = item.properties.get("asset_name", "unknown")
+        
+        # Add date fields
+        import datetime
+        current_time = datetime.datetime.now()
+        fields.update({
+            "YYYY": current_time.year,
+            "MM": current_time.month,
+            "DD": current_time.day
+        })
+        
+        self.logger.debug("Final fields: %s" % fields)
+        
+        # Validate against template
+        missing_keys = publish_template.missing_keys(fields)
+        if missing_keys:
+            self.logger.error("Missing required fields for template: %s" % missing_keys)
+            self.logger.error("Current fields: %s" % fields)
             return False
             
-        # Get path info
-        path_info = self.get_path_info(item)
-        if not path_info:
+        # Try to create the publish path
+        try:
+            publish_path = publish_template.apply_fields(fields)
+            item.properties["publish_path"] = publish_path
+            item.properties["fields"] = fields
+            self.logger.debug("Publish path: %s" % publish_path)
+            return True
+        except Exception as e:
+            self.logger.error("Error creating publish path: %s" % e)
             return False
-            
-        self.logger.debug("Path info: %s" % path_info)
-        
-        # Store the fields for use in publish
-        item.properties["fields"] = {
-            "Asset": context.entity["code"],
-            "sg_asset_type": context.entity["sg_asset_type"],
-            "Step": context.step["short_name"],
-            "version": path_info.get("version", 1),
-            "name": path_info.get("name", item.properties.get("asset_name", "unknown"))
-        }
-        
-        self.logger.debug("Stored fields: %s" % item.properties["fields"])
-        
-        return True
 
     def publish(self, settings, item):
         """

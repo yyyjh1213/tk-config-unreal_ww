@@ -28,7 +28,7 @@ settings.tk-multi-publish2.unreal.project:
         Additional Fields:
             sg_asset_type: "{context.entity.sg_asset_type}"
             Asset: "{context.entity.code}"
-            Step: "{context.step.name}"
+            Step: "{context.step.short_name}"
   - name: Render Movie and Submit for Review
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_movie.py"
     settings:
@@ -60,9 +60,9 @@ settings.tk-multi-publish2.maya.asset_step.unreal:
         Publish Template: unreal.maya_asset_fbx_publish
         Export Type: FBX
         Additional Fields:
-            sg_asset_type: "{context.entity['sg_asset_type']}" #컨텍스트가져오기
-            Asset: "{context.entity['code']}"
-            Step: "{context.step['name']}"
+            sg_asset_type: "{context.entity.sg_asset_type}"
+            Asset: "{context.entity.code}"
+            Step: "{context.step.short_name}"
   - name: Publish to ShotGrid
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session_geometry.py"
     settings:
