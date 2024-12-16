@@ -269,31 +269,24 @@ class UnrealMoviePublishPlugin(HookBaseClass):
     def accept(self, settings, item):
         """
         Determines if the item is of any interest to this plugin.
-        Previously we tried to set a single publish_template here, 
-        but now we rely on validate() to choose the template based on render_format.
+        Remove publish_template logic here and simply load saved UI settings.
         """
         accepted = True
         checked = True
 
         if sys.platform != "win32":
-            self.logger.warning(
-                "Movie publishing is not supported on other platforms than Windows..."
-            )
+            self.logger.warning("Movie publishing is not supported on other platforms than Windows...")
             return {
                 "accepted": False,
             }
 
-        # We no longer get the publish_template from settings here and set it in item.properties.
-        # Instead, we rely on render_format in validate() to determine which template to use.
-
-        # Just load saved UI settings
+        # Don't load a template here, just load saved UI settings
         self.load_saved_ui_settings(settings)
 
         return {
             "accepted": accepted,
             "checked": checked
         }
-
     def validate(self, settings, item):
         asset_path = item.properties.get("asset_path")
         asset_name = item.properties.get("asset_name")
@@ -322,7 +315,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         self._render_format = render_format
 
         publisher = self.parent
-        # render_format에 따라 템플릿 선택
+        # render_format에 따라 템플릿 선택 (unreal.movie_publish_exr / unreal.movie_publish_mov)
         if render_format == "exr":
             publish_template = publisher.get_template_by_name("unreal.movie_publish_exr")
         else:
@@ -392,7 +385,9 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         item.properties["unreal_asset_path"] = asset_path
         item.properties["unreal_map_path"] = unreal_map_path
 
-        version_number = self._unreal_asset_get_version(asset_path) + 1
+        # 첫 퍼블리시시 v001로 시작하도록 고정. 
+        # 에셋 메타데이터나 파일명 재분석 로직 제거.
+        version_number = 1
         fields["version"] = version_number
 
         date = datetime.date.today()
@@ -414,23 +409,15 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         # 누락 키 확인
         missing_keys = publish_template.missing_keys(fields)
         if missing_keys:
-            self.logger.error(
-                "Missing keys required for the publish template: {}".format(missing_keys)
-            )
+            self.logger.error("Missing keys required for the publish template: {}".format(missing_keys))
             return False
 
         publish_folder = settings["Publish Folder"].value
         if not publish_folder:
             publish_folder = unreal.Paths.project_saved_dir()
 
-        import re
         publish_path = publish_template.apply_fields(fields)
         publish_path = os.path.abspath(os.path.join(publish_folder, publish_path))
-
-        match = re.search(r"_v(\d+)", publish_path)
-        if match:
-            version_number = int(match.group(1))
-            fields["version"] = version_number
 
         item.properties["path"] = publish_path
         item.properties["publish_path"] = publish_path
