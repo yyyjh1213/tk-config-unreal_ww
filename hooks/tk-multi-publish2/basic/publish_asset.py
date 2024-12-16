@@ -152,70 +152,52 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         publish_template = publisher.get_template_by_name(publish_template_name)
         
         if not publish_template:
-            self.logger.error(f"Could not find template: {publish_template_name}")
+            self.logger.error(f"Could not find template '{publish_template_name}'")
             return False
 
-        self.logger.debug("=== Template Details ===")
         self.logger.debug(f"Template Name: {publish_template_name}")
         self.logger.debug(f"Template: {publish_template}")
         self.logger.debug(f"Template Keys: {publish_template.keys}")
-
-        # Get current date components
-        current_time = datetime.datetime.now()
         
-        # Prepare fields with enhanced validation and logging
         try:
+            # Basic required fields
             fields = {
-                "Asset": context.entity.get("code"),
-                "Step": context.step.get("name"),
-                "sg_asset_type": context.entity.get("sg_asset_type"),
                 "name": os.path.splitext(os.path.basename(item.properties.get("unreal_asset_path", "")))[0],
-                "version": 1,
-                # Add date fields
-                "YYYY": current_time.year,
-                "MM": current_time.month,
-                "DD": current_time.day
+                "version": 1
             }
             
-            # Validate critical fields
-            critical_fields = ["Asset", "Step", "sg_asset_type", "name"]
-            missing_critical = [f for f in critical_fields if not fields.get(f)]
-            if missing_critical:
-                self.logger.error(f"Missing critical context fields: {missing_critical}")
-                self.logger.error(f"Context Entity: {context.entity}")
-                self.logger.error(f"Context Step: {context.step}")
-                return False
-
-            # Log current field values
+            # Get entity fields safely
+            if context.entity:
+                if hasattr(context.entity, "code"):
+                    fields["Asset"] = context.entity.code
+                else:
+                    fields["Asset"] = context.entity.get("code", "")
+                    
+            # Get step fields safely
+            if context.step:
+                if hasattr(context.step, "name"):
+                    fields["Step"] = context.step.name
+                else:
+                    fields["Step"] = context.step.get("name", "")
+            
+            # Log all available fields
+            self.logger.debug("=== Available Template Fields ===")
+            for key in publish_template.keys:
+                self.logger.debug(f"Template requires: {key}")
+                
             self.logger.debug("=== Current Field Values ===")
             for key, value in fields.items():
                 self.logger.debug(f"{key}: {value}")
             
-            # Additional fields from settings
-            additional_fields = settings.get("Additional Fields", {})
-            if additional_fields and additional_fields.value:
-                self.logger.debug("=== Additional Fields ===")
-                self.logger.debug(f"Fields from settings: {additional_fields.value}")
-                
-                for key, value_template in additional_fields.value.items():
-                    try:
-                        if "{context.entity.sg_asset_type}" in value_template:
-                            fields[key] = context.entity.get("sg_asset_type")
-                        elif "{context.entity.code}" in value_template:
-                            fields[key] = context.entity.get("code")
-                        elif "{context.step.name}" in value_template:
-                            fields[key] = context.step.get("name")
-                        self.logger.debug(f"Added field {key} = {fields.get(key)}")
-                    except Exception as e:
-                        self.logger.warning(f"Failed to process field {key}: {str(e)}")
-
-            self.logger.debug("=== Final Fields ===")
-            self.logger.debug(f"Fields for template: {fields}")
-
             # Validate required fields
-            missing_fields = [k for k in publish_template.keys if k not in fields]
+            missing_fields = []
+            for key in publish_template.keys:
+                if key not in fields or not fields[key]:
+                    missing_fields.append(key)
+                    
             if missing_fields:
-                self.logger.error(f"Missing required fields: {missing_fields}")
+                self.logger.error(f"Missing required fields for template: {missing_fields}")
+                self.logger.error(f"Current fields: {fields}")
                 return False
 
             # Try to create publish path
@@ -228,8 +210,8 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to validate publish: {str(e)}")
-            self.logger.error(f"Fields attempted: {fields if 'fields' in locals() else 'Fields not created'}")
+            self.logger.error(f"Error resolving template: {str(e)}")
+            self.logger.error(f"Current fields: {fields}")
             return False
 
     def publish(self, settings, item):
