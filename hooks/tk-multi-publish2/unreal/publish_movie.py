@@ -350,7 +350,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             if context.entity:
                 tk = self.parent.sgtk
                 self.logger.info("No filesystem structure found for context. Creating folders for %s %s"
-                                 % (context.entity["type"], context.entity["id"]))
+                                % (context.entity["type"], context.entity["id"]))
                 tk.create_filesystem_structure(context.entity["type"], context.entity["id"])
                 
                 if not context.filesystem_locations:
@@ -358,7 +358,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                     return False
             else:
                 self.logger.error("No filesystem structure found and context has no entity. "
-                                  "Cannot create folders. Please ensure folders exist.")
+                                "Cannot create folders. Please ensure folders exist.")
                 return False
 
         fields = context.as_template_fields(publish_template)
@@ -410,18 +410,12 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         if render_format not in ["exr", "mov"]:
             self.logger.error("Render Format setting must be 'exr' or 'mov'. Given: %s" % render_format)
             return False
-        
+
         self._render_format = render_format
 
-        # 기존 템플릿 호환을 위해 ue_mov_ext 추가 설정
-        if render_format == "exr":
-            fields["ue_folder_ext"] = "exr"
-            fields["ue_file_ext"] = "exr"
-            fields["ue_mov_ext"] = "exr"  # 기존 템플릿 사용 시 호환
-        else:
-            fields["ue_folder_ext"] = "mov"
-            fields["ue_file_ext"] = "mov"
-            fields["ue_mov_ext"] = "mov"  # 기존 템플릿 사용 시 호환
+        # ue_mov_ext를 render_format에 맞게 설정
+        # exr 선택 시 unreal/exr 폴더, mov 선택 시 unreal/mov 폴더 및 해당 확장자
+        fields["ue_mov_ext"] = render_format
 
         use_movie_render_queue = False
         render_presets = None
