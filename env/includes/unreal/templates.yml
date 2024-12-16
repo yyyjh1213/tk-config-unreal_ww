@@ -32,7 +32,18 @@ keys:
             mov: Quicktime Movie (.mov)
             avi: Audio Video Interleaved (.avi)
             exr: OpenEXR (.exr)
-
+    ue_file_ext:
+        type: str
+        choices:
+            mov: Quicktime Movie (.mov)
+            avi: Audio Video Interleaved (.avi)
+            exr: OpenEXR (.exr)
+    ue_folder_ext:
+        type: str
+        choices:
+            mov: Quicktime Movie (.mov)
+            avi: Audio Video Interleaved (.avi)
+            exr: OpenEXR (.exr)
 paths:
  #
     # Unreal
