@@ -130,10 +130,16 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             raise Exception(error_msg)
 
         # 퍼블리시 템플릿 가져오기
-        publish_template = publisher.get_template_by_name(settings["Publish Template"].value)
+        publish_template_name = settings["Publish Template"].value
+        self.logger.debug("퍼블리시 템플릿 이름: %s" % publish_template_name)
+        
+        publish_template = publisher.get_template_by_name(publish_template_name)
         if not publish_template:
-            self.logger.error("퍼블리시 템플릿을 찾을 수 없습니다.")
+            self.logger.error("퍼블리시 템플릿을 찾을 수 없습니다: %s" % publish_template_name)
             return False
+
+        self.logger.debug("퍼블리시 템플릿: %s" % publish_template)
+        self.logger.debug("템플릿 필드: %s" % publish_template.keys)
 
         # 현재 날짜 가져오기
         current_date = datetime.datetime.now()
@@ -143,20 +149,27 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             "name": os.path.splitext(os.path.basename(asset_path))[0],
             "YYYY": current_date.year,
             "MM": current_date.month,
-            "DD": current_date.day,
-            "version": 1  # 기본 버전
+            "DD": current_date.day
         }
 
         # 컨텍스트에서 필드 가져오기
         if context.entity:
-            fields["sg_asset_type"] = context.entity.get("sg_asset_type", "")
-            fields["Asset"] = context.entity.get("code", "")
+            fields["sg_asset_type"] = context.entity.get("sg_asset_type")
+            fields["Asset"] = context.entity.get("code")
+            self.logger.debug("Entity fields - sg_asset_type: %s, Asset: %s" % 
+                            (fields.get("sg_asset_type"), fields.get("Asset")))
 
         if context.step:
-            fields["Step"] = context.step.get("name", "")
+            fields["Step"] = context.step.get("name")
+            self.logger.debug("Step field: %s" % fields.get("Step"))
 
-        # 필드 디버그 로깅
-        self.logger.debug("Fields before validation: %s" % fields)
+        # 버전 필드 설정
+        if item.properties.get("path"):
+            fields["version"] = publisher.util.get_next_version_number(item.properties["path"])
+        else:
+            fields["version"] = 1
+
+        self.logger.debug("Version field: %s" % fields.get("version"))
 
         # 필수 필드 확인
         required_fields = ["sg_asset_type", "Asset", "Step", "version"]
