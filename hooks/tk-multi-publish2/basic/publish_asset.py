@@ -133,50 +133,16 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             
         self.logger.debug("Validating with context: %s" % context)
         
-        # Initialize fields dictionary
-        fields = {}
-        
-        # Try to get fields from context first
-        try:
-            fields = context.as_template_fields(publish_template)
-            self.logger.debug("Fields from context: %s" % fields)
-        except Exception as e:
-            self.logger.debug("Unable to get fields from context: %s" % e)
-        
-        # Get fields from entity
-        if context.entity:
-            self.logger.debug("Entity fields: %s" % context.entity)
-            if not isinstance(context.entity, dict):
-                self.logger.error("Context entity is not a dictionary")
-                return False
-                
-            fields["Asset"] = context.entity.get("code")
-            fields["sg_asset_type"] = context.entity.get("sg_asset_type")
-            
-            if not fields.get("Asset") or not fields.get("sg_asset_type"):
-                self.logger.error("Missing required entity fields. Asset: %s, sg_asset_type: %s" % 
-                                (fields.get("Asset"), fields.get("sg_asset_type")))
-                return False
-        else:
-            self.logger.error("Context has no entity")
+        # Get fields from context using context_fields module
+        context_fields_obj = self._context_fields.ContextFields(self.logger)
+        fields = context_fields_obj.get_context_fields(context, publish_template)
+        if not fields:
+            self.logger.error("Failed to get fields from context")
             return False
             
-        # Get fields from step
-        if context.step:
-            self.logger.debug("Step fields: %s" % context.step)
-            if not isinstance(context.step, dict):
-                self.logger.error("Context step is not a dictionary")
-                return False
-                
-            fields["Step"] = context.step.get("short_name")
-            if not fields.get("Step"):
-                self.logger.error("Missing required step field: short_name")
-                return False
-        else:
-            self.logger.error("Context has no step")
-            return False
-            
-        # Get version from path or default to 1
+        self.logger.debug("Fields from context: %s" % fields)
+        
+        # Add version from path or default to 1
         path = item.properties.get("path")
         version = 1
         if path:

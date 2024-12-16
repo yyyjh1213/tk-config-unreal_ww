@@ -30,15 +30,35 @@ class ContextFields(HookBaseClass):
         # Get fields from entity
         if context.entity:
             self.logger.debug("Entity fields: %s" % context.entity)
-            fields.update({
-                "Asset": context.entity.get("code", "default"),
-                "sg_asset_type": context.entity.get("sg_asset_type", "Asset")
-            })
+            
+            # Get asset code
+            asset_code = context.entity.get("code")
+            if not asset_code:
+                self.logger.error("Required field 'code' is missing from entity")
+                return None
+            fields["Asset"] = asset_code
+            
+            # Get asset type
+            asset_type = context.entity.get("sg_asset_type")
+            if not asset_type:
+                self.logger.error("Required field 'sg_asset_type' is missing from entity")
+                return None
+            fields["sg_asset_type"] = asset_type
+        else:
+            self.logger.error("Context has no entity")
+            return None
             
         # Get fields from step
         if context.step:
             self.logger.debug("Step fields: %s" % context.step)
-            fields["Step"] = context.step.get("short_name", "publish")
+            step_name = context.step.get("short_name")
+            if not step_name:
+                self.logger.error("Required field 'short_name' is missing from step")
+                return None
+            fields["Step"] = step_name
+        else:
+            self.logger.error("Context has no step")
+            return None
             
         # Add date fields
         current_time = datetime.datetime.now()
