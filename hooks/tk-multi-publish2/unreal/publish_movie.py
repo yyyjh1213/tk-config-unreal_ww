@@ -692,7 +692,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             editor_cmd_path = os.path.join(engine_root, "Binaries", "Win64", "UnrealEditor.exe")
 
         cmd_args = [
-            editor_cmd_path,
+            sys.executable, 
             "%s" % os.path.join(
                 unreal.SystemLibrary.get_project_directory(),
                 "%s.uproject" % unreal.SystemLibrary.get_game_name(),
@@ -701,13 +701,14 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             "-game",
             "-Multiprocess",
             "-NoLoadingScreen",
+            "-NoSplash",
+            "-Renderoffscreen",
             "-FixedSeed",
             "-log",
             "-Unattended",
             "-messaging",
             '-SessionName="Publish2 Movie Render"',
             "-nohmd",
-            "-windowed",
             "-ResX=1280",
             "-ResY=720",
             "-dpcvars=%s" % ",".join([
