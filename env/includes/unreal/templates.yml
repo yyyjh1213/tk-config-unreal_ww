@@ -53,7 +53,7 @@ paths:
         definition: '@asset_root/dev/images/{name}_turntable_v{version}.{ue_mov_ext}'
     # The location of turntable review output published in Unreal
     unreal.maya_turntable_publish:
-        definition: '@asset_root/review/images/{name}_turntable_v{version}.mov'
+        definition: '@asset_root/review/{name}.{Step}.turntable_v{version}.mov'
     # The location of published assets from Unreal
     unreal.asset_publish:
         definition: '@asset_root/pub/unreal/{Step}/{Asset}_{name}_v{version}.fbx'
