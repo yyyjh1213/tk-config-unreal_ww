@@ -159,6 +159,20 @@ class UnrealSessionCollector(HookBaseClass):
         asset_item.properties["asset_path"] = asset_path
         asset_item.properties["asset_name"] = asset_name
         asset_item.properties["asset_type"] = asset_type
+        
+        # Add context information
+        context = self.parent.context
+        self.logger.debug("Context: %s", context)
+        
+        if context and context.entity:
+            self.logger.debug("Context entity fields: %s", context.entity)
+            asset_item.properties["sg_asset_type"] = context.entity.get("sg_asset_type")
+            asset_item.properties["code"] = context.entity.get("code")
+            
+        if context and context.step:
+            self.logger.debug("Context step fields: %s", context.step)
+            asset_item.properties["step_name"] = context.step.get("short_name")
+            
         return asset_item
 
     def collect_selected_assets(self, parent_item):
@@ -170,13 +184,19 @@ class UnrealSessionCollector(HookBaseClass):
         unreal_sg = sgtk.platform.current_engine().unreal_sg_engine
         sequence_edits = None
         
-        # 선택된 에셋 로깅 추가
+        # Log selected assets
         self.logger.debug("Selected assets: %s", unreal_sg.selected_assets)
         self.logger.debug("Selected assets count: %s", len(unreal_sg.selected_assets))
         
+        # Log context information
+        context = self.parent.context
+        self.logger.debug("Current context: entity=%s, step=%s", 
+                         context.entity if context else None,
+                         context.step if context else None)
+        
         # Iterate through the selected assets and get their info and add them as items to be published
         for asset in unreal_sg.selected_assets:
-            self.logger.debug("Asset: %s", asset)
+            self.logger.debug("Processing asset: %s", asset)
             if asset.asset_class_path.asset_name == "LevelSequence":
                 if sequence_edits is None:
                     sequence_edits = self.retrieve_sequence_edits()

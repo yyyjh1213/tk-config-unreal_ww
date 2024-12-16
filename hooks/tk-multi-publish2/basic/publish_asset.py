@@ -105,122 +105,70 @@ class UnrealAssetPublishPlugin(HookBaseClass):
 
     def validate(self, settings, item):
         """
-        Validates the given item to check that it is ok to publish.
+        Validates the given item to check that it is ok to publish. Returns a
+        boolean to indicate validity.
+
+        :param settings: Dictionary of Settings. The keys are strings, matching
+            the keys returned in the settings property. The values are `Setting`
+            instances.
+        :param item: Item to process
+        :returns: True if item is valid, False otherwise.
         """
         publisher = self.parent
-        engine = publisher.engine
         
-        self.logger.debug("=== Starting Validation ===")
-        
-        # Get the path in a normalized state
-        path = tank.util.ShotgunPath.normalize(item.properties.get("path"))
-        self.logger.debug("Path: %s" % path)
-
-        # Get the publish template from the settings
-        publish_template = publisher.get_template_by_name(settings.get("Publish Template").value)
-        if not publish_template:
-            self.logger.debug("No publish template set for item")
-            return False
-        
-        self.logger.debug("Publish Template: %s" % publish_template)
-
-        # Get context
+        # Get the context from the item or parent
         context = item.context or publisher.context
         if not context:
-            self.logger.error("No context found!")
+            self.logger.error("No context found for item: %s" % item)
             return False
-
-        self.logger.debug("=== Context Information ===")
-        self.logger.debug("Context: %s" % context)
-        self.logger.debug("Context Entity: %s" % context.entity)
-        self.logger.debug("Context Step: %s" % context.step)
-        self.logger.debug("Context Task: %s" % context.task)
-        self.logger.debug("Context Project: %s" % context.project)
-
-        # Initialize fields dictionary
-        fields = {}
-        self.logger.debug("Initial fields: %s" % fields)
-
-        # Try to get fields from context first
-        try:
-            fields = context.as_template_fields(publish_template)
-            self.logger.debug("Fields from context: %s" % fields)
-        except Exception as e:
-            self.logger.debug("Unable to get fields from context: %s" % e)
-
-        # Get fields from entity
-        if context.entity:
-            previous_fields = fields.copy()
-            fields["Asset"] = context.entity.get("code", fields.get("Asset", "default"))
-            fields["sg_asset_type"] = context.entity.get("sg_asset_type", fields.get("sg_asset_type", "Asset"))
             
-            self.logger.debug("=== Entity Field Updates ===")
-            self.logger.debug("Previous fields: %s" % previous_fields)
-            self.logger.debug("Updated fields: %s" % fields)
-            self.logger.debug("Entity: %s" % context.entity)
-            self.logger.debug("Entity type: %s" % context.entity.get("type"))
-
-        # Get fields from step
-        if context.step:
-            previous_fields = fields.copy()
-            fields["Step"] = context.step.get("short_name", fields.get("Step", "publish"))
+        self.logger.debug("Validating with context: %s" % context)
+        
+        # Validate entity
+        if not context.entity:
+            self.logger.error("Context has no entity")
+            return False
             
-            self.logger.debug("=== Step Field Updates ===")
-            self.logger.debug("Previous fields: %s" % previous_fields)
-            self.logger.debug("Updated fields: %s" % fields)
-            self.logger.debug("Step: %s" % context.step)
-
-        # Get version from path or default to 1
-        version = 1
-        if path:
-            import re
-            version_pattern = re.compile(r"\.?v(\d+)", re.IGNORECASE)
-            match = version_pattern.search(path)
-            if match:
-                version = int(match.group(1))
-            self.logger.debug("Version from path: %s" % version)
+        self.logger.debug("Entity fields: %s" % context.entity)
         
-        # Add/override with version and name
-        previous_fields = fields.copy()
-        fields.update({
-            "name": item.properties.get("name", "default"),
-            "version": item.properties.get("version_number", version)
-        })
+        # Validate required entity fields
+        required_entity_fields = ["sg_asset_type", "code"]
+        for field in required_entity_fields:
+            if not context.entity.get(field):
+                self.logger.error("Required entity field '%s' is missing" % field)
+                return False
+                
+        # Validate step
+        if not context.step:
+            self.logger.error("Context has no step")
+            return False
+            
+        self.logger.debug("Step fields: %s" % context.step)
         
-        self.logger.debug("=== Name and Version Updates ===")
-        self.logger.debug("Previous fields: %s" % previous_fields)
-        self.logger.debug("Updated fields: %s" % fields)
-        self.logger.debug("Item properties: %s" % item.properties)
-
-        # Add date fields
-        current_time = datetime.datetime.now()
-        fields.update({
-            "YYYY": current_time.year,
-            "MM": current_time.month,
-            "DD": current_time.day
-        })
-
-        self.logger.debug("=== Final Template Resolution ===")
-        self.logger.debug("Template: %s" % publish_template)
-        self.logger.debug("Template keys: %s" % publish_template.keys)
-        self.logger.debug("Final fields: %s" % fields)
-
-        # Check for missing required fields
-        missing_keys = publish_template.missing_keys(fields)
-        if missing_keys:
-            self.logger.error("Missing required fields: %s" % missing_keys)
-            self.logger.error("Current fields: %s" % fields)
+        # Validate required step fields
+        if not context.step.get("short_name"):
+            self.logger.error("Required step field 'short_name' is missing")
             return False
-
-        try:
-            publish_path = publish_template.apply_fields(fields)
-            item.properties["publish_path"] = publish_path
-            self.logger.debug("Publishing to path: %s" % publish_path)
-            return True
-        except tank.TankError as e:
-            self.logger.error("Failed to resolve publish path: %s" % e)
-            self.logger.error("Exception details: %s" % str(e))
+            
+        # Get path info
+        path_info = self.get_path_info(item)
+        if not path_info:
             return False
+            
+        self.logger.debug("Path info: %s" % path_info)
+        
+        # Store the fields for use in publish
+        item.properties["fields"] = {
+            "Asset": context.entity["code"],
+            "sg_asset_type": context.entity["sg_asset_type"],
+            "Step": context.step["short_name"],
+            "version": path_info.get("version", 1),
+            "name": path_info.get("name", item.properties.get("asset_name", "unknown"))
+        }
+        
+        self.logger.debug("Stored fields: %s" % item.properties["fields"])
+        
+        return True
 
     def publish(self, settings, item):
         """
