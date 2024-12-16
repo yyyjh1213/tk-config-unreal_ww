@@ -178,22 +178,10 @@ settings.tk-multi-publish2.maya.asset_step:
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
         Publish Template: maya_asset_publish
-  - name: Publish FBX to ShotGrid
-    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/maya_publish_asset.py"
-    settings:
-      Publish Template: maya_asset_publish
-  - name: Publish and Submit for Review
-    hook: "{self}/publish_file.py:{tk-framework-unrealqt_v1.x.x}/tk-multi-publish2/tk-maya/basic/publish_turntable.py"
-    settings:
-      Work Template: unreal.maya_turntable_render
-      Publish Template: unreal.maya_turntable_publish
-      Unreal Engine Version: "5.0"
-      Unreal Project Path Template: "{self}/resources/ueprojects/{unreal_engine_version}/turntable/turntable.uproject"
-      Render Map Path: "/Game/turntable/level/turntable.umap"
-      Sequence Path: "/Game/turntable/sequence/turntable_sequence.turntable_sequence"
-      Maya Assets Path: "/Game/Assets/{ue_sg_asset_type}/{ue_sg_asset_name}"
-      Version Up: true
-      Version Number: "{next_version}"
+  # - name: Publish FBX to ShotGrid
+  #   hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/maya_publish_asset.py"
+  #   settings:
+  #     Publish Template: maya_asset_publish
   - name: All Session Geometry
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session_geometry.py"
     settings:
