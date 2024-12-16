@@ -56,7 +56,7 @@ settings.tk-maya.asset_step:
   - {app_instance: tk-multi-workfiles2, name: File Open...}
   - {app_instance: tk-multi-snapshot, name: Snapshot...}
   - {app_instance: tk-multi-workfiles2, name: File Save...}
-  - {app_instance: tk-multi-publish2, name: Publish2...}
+  - {app_instance: tk-multi-publish2, name: Publish...}
   - {app_instance: tk-multi-breakdown2, name: Scene Breakdown...}
   template_project: asset_work_area_maya
   location: "@engines.tk-maya.location"
