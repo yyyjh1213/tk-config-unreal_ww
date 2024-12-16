@@ -1,16 +1,16 @@
 {
-	"FileVersion": 3,
-	"EngineAssociation": "5.0",
-	"Category": "",
-	"Description": "Turntable rendering project for Maya assets",
+	"FileVersion": 3,                    // Unreal 프로젝트 파일 버전
+	"EngineAssociation": "5.0",         // 사용할 언리얼 엔진 버전
+	"Category": "",                     // 프로젝트 카테고리 (선택사항)
+	"Description": "Turntable rendering project for Maya assets",  // 프로젝트 설명
 	"Plugins": [
 		{
-			"Name": "MovieRenderPipeline",
-			"Enabled": true
+			"Name": "MovieRenderPipeline",  // 고품질 렌더링을 위한 플러그인
+			"Enabled": true                 // 활성화 상태
 		},
 		{
-			"Name": "FbxAutomationTestBuilder",
-			"Enabled": true
+			"Name": "FbxAutomationTestBuilder",  // FBX 자동화 테스트용 플러그인
+			"Enabled": true                      // 활성화 상태
 		}
 	]
 }

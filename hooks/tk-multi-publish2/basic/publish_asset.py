@@ -1,3 +1,13 @@
+# Copyright (c) 2017 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
 import tank
 import os
 import sys
@@ -83,34 +93,74 @@ class UnrealAssetPublishPlugin(HookBaseClass):
     def validate(self, settings, item):
         """
         Validates the given item to check that it is ok to publish.
-
         Returns a boolean to indicate validity.
         """
         publisher = self.parent
         engine = publisher.engine
-        asset_path = item.properties.get("unreal_asset_path")
+        
+        # 컨텍스트에서 필요한 필드 가져오기
+        context = item.context
+        if not context:
+            self.logger.error("컨텍스트를 찾을 수 없습니다.")
+            return False
 
+        # 필수 필드 확인
+        required_fields = ["sg_asset_type", "Asset", "Step"]
+        for field in required_fields:
+            if not context.entity or field not in context.entity:
+                self.logger.error("컨텍스트에서 %s 필드를 찾을 수 없습니다." % field)
+                return False
+
+        # 에셋 경로 확인
+        asset_path = item.properties.get("unreal_asset_path")
         if not UNREAL_AVAILABLE:
-            error_msg = "Unreal is not available. Unable to export asset."
+            error_msg = "Unreal을 사용할 수 없습니다. 에셋을 내보낼 수 없습니다."
             self.logger.error(error_msg)
             raise Exception(error_msg)
 
         if not asset_path:
-            error_msg = "Could not determine the asset path in Unreal."
+            error_msg = "Unreal에서 에셋 경로를 찾을 수 없습니다."
             self.logger.error(error_msg)
             raise Exception(error_msg)
+
+        # 퍼블리시 템플릿 가져오기
+        publish_template = publisher.get_template_by_name(settings["Publish Template"].value)
+        if not publish_template:
+            self.logger.error("퍼블리시 템플릿을 찾을 수 없습니다.")
+            return False
+
+        # 템플릿 필드 설정
+        fields = {
+            "sg_asset_type": context.entity["sg_asset_type"],
+            "Asset": context.entity["code"],
+            "Step": context.step["name"],
+            "version": publisher.util.get_next_version_number(item.properties["path"]),
+            "name": os.path.splitext(os.path.basename(asset_path))[0]
+        }
+
+        # 퍼블리시 경로 생성
+        try:
+            publish_path = publish_template.apply_fields(fields)
+            item.properties["path"] = publish_path
+            item.properties["publish_path"] = publish_path
+        except Exception as e:
+            self.logger.error("퍼블리시 경로 생성 중 오류 발생: %s" % str(e))
+            return False
 
         return True
 
     def publish(self, settings, item):
+        """
+        Executes the publish logic for the given item and settings.
+        """
         publisher = self.parent
 
         # Get the path in a normalized state. No trailing separator, separators are
         # appropriate for current os, no double separators, etc.
-        path = sgtk.util.ShotgunPath.normalize(path)
+        path = tank.util.ShotgunPath.normalize(path)
 
         # Get the publish path
-        publish_path = self._get_publish_path(settings, item)
+        publish_path = item.properties["publish_path"]
         
         # Ensure the publish folder exists
         publish_folder = os.path.dirname(publish_path)
@@ -139,7 +189,7 @@ def _unreal_export_asset_to_fbx(destination_path, asset_path, asset_name):
     task = _generate_fbx_export_task(destination_path, asset_path, asset_name)
     exported = unreal.Exporter.run_asset_export_task(task)
     if not exported:
-        raise Exception("Failed to export asset to FBX")
+        raise Exception("FBX 내보내기에 실패했습니다.")
 
 def _generate_fbx_export_task(destination_path, asset_path, asset_name):
     """
