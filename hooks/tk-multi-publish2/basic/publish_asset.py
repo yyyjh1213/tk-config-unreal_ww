@@ -110,14 +110,19 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         publisher = self.parent
         engine = publisher.engine
         
+        self.logger.debug("=== Starting Validation ===")
+        
         # Get the path in a normalized state
         path = tank.util.ShotgunPath.normalize(item.properties.get("path"))
+        self.logger.debug("Path: %s" % path)
 
         # Get the publish template from the settings
         publish_template = publisher.get_template_by_name(settings.get("Publish Template").value)
         if not publish_template:
             self.logger.debug("No publish template set for item")
             return False
+        
+        self.logger.debug("Publish Template: %s" % publish_template)
 
         # Get context
         context = item.context or publisher.context
@@ -125,47 +130,67 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             self.logger.error("No context found!")
             return False
 
+        self.logger.debug("=== Context Information ===")
+        self.logger.debug("Context: %s" % context)
+        self.logger.debug("Context Entity: %s" % context.entity)
+        self.logger.debug("Context Step: %s" % context.step)
+        self.logger.debug("Context Task: %s" % context.task)
+        self.logger.debug("Context Project: %s" % context.project)
+
         # Initialize fields dictionary
         fields = {}
+        self.logger.debug("Initial fields: %s" % fields)
 
         # Try to get fields from context first
         try:
             fields = context.as_template_fields(publish_template)
+            self.logger.debug("Fields from context: %s" % fields)
         except Exception as e:
             self.logger.debug("Unable to get fields from context: %s" % e)
 
         # Get fields from entity
         if context.entity:
+            previous_fields = fields.copy()
             fields["Asset"] = context.entity.get("code", fields.get("Asset", "default"))
             fields["sg_asset_type"] = context.entity.get("sg_asset_type", fields.get("sg_asset_type", "Asset"))
             
-            # Debug logging for entity
+            self.logger.debug("=== Entity Field Updates ===")
+            self.logger.debug("Previous fields: %s" % previous_fields)
+            self.logger.debug("Updated fields: %s" % fields)
             self.logger.debug("Entity: %s" % context.entity)
             self.logger.debug("Entity type: %s" % context.entity.get("type"))
-            self.logger.debug("Entity fields: Asset=%s, sg_asset_type=%s" % 
-                            (fields.get("Asset"), fields.get("sg_asset_type")))
 
         # Get fields from step
         if context.step:
+            previous_fields = fields.copy()
             fields["Step"] = context.step.get("short_name", fields.get("Step", "publish"))
+            
+            self.logger.debug("=== Step Field Updates ===")
+            self.logger.debug("Previous fields: %s" % previous_fields)
+            self.logger.debug("Updated fields: %s" % fields)
             self.logger.debug("Step: %s" % context.step)
-            self.logger.debug("Step field: %s" % fields.get("Step"))
 
         # Get version from path or default to 1
         version = 1
         if path:
-            # Try to extract version from path (e.g., v001 or .v001.)
             import re
             version_pattern = re.compile(r"\.?v(\d+)", re.IGNORECASE)
             match = version_pattern.search(path)
             if match:
                 version = int(match.group(1))
+            self.logger.debug("Version from path: %s" % version)
         
         # Add/override with version and name
+        previous_fields = fields.copy()
         fields.update({
             "name": item.properties.get("name", "default"),
             "version": item.properties.get("version_number", version)
         })
+        
+        self.logger.debug("=== Name and Version Updates ===")
+        self.logger.debug("Previous fields: %s" % previous_fields)
+        self.logger.debug("Updated fields: %s" % fields)
+        self.logger.debug("Item properties: %s" % item.properties)
 
         # Add date fields
         current_time = datetime.datetime.now()
@@ -175,12 +200,10 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             "DD": current_time.day
         })
 
-        # Debug logging
-        self.logger.debug("=== Template Resolution Debug ===")
-        self.logger.debug("Context: %s" % context)
+        self.logger.debug("=== Final Template Resolution ===")
         self.logger.debug("Template: %s" % publish_template)
         self.logger.debug("Template keys: %s" % publish_template.keys)
-        self.logger.debug("Fields: %s" % fields)
+        self.logger.debug("Final fields: %s" % fields)
 
         # Check for missing required fields
         missing_keys = publish_template.missing_keys(fields)
@@ -196,6 +219,7 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             return True
         except tank.TankError as e:
             self.logger.error("Failed to resolve publish path: %s" % e)
+            self.logger.error("Exception details: %s" % str(e))
             return False
 
     def publish(self, settings, item):
