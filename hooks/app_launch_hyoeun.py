@@ -105,6 +105,7 @@ class AppLaunch(tank.Hook):
             self.parent.log_debug("UE_PYTHONPATH: %s" % os.environ['UE_PYTHONPATH'])
             self.parent.log_debug("sys.path: %s" % sys.path)
 
+
         if depart_confirm:
             
             adapter = get_adapter(platform.system())
