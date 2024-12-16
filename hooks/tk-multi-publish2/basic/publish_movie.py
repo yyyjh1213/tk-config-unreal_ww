@@ -442,82 +442,120 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         """
         Publish and render movie from Maya using Unreal Engine
         """
-        publish_path = item.properties["publish_path"]
-        
-        # Ensure the publish folder exists
-        publish_folder = os.path.dirname(publish_path)
-        self.parent.ensure_folder_exists(publish_folder)
-        
-        # 1. Export FBX for Unreal
-        fbx_path = os.path.splitext(publish_path)[0] + ".fbx"
-        
-        # Get the current camera
-        active_panel = cmds.getPanel(withFocus=True)
-        if cmds.getPanel(typeOf=active_panel) == "modelPanel":
-            camera = cmds.modelPanel(active_panel, query=True, camera=True)
-        else:
-            # Get the first non-default camera
-            all_cameras = cmds.ls(type="camera", long=True)
-            non_default_cameras = [cam for cam in all_cameras 
-                                 if not cmds.camera(cam, query=True, startupCamera=True)]
-            if non_default_cameras:
-                camera = non_default_cameras[0]
-            else:
-                camera = all_cameras[0]
-        
-        # Set playback range
-        start_frame = cmds.playbackOptions(query=True, minTime=True)
-        end_frame = cmds.playbackOptions(query=True, maxTime=True)
-        
+        if not MAYA_AVAILABLE:
+            self.logger.error("Maya is not available!")
+            return False
+
         try:
-            # Setup FBX export options
-            mel.eval('FBXExportFileVersion -v FBX201800')
-            mel.eval('FBXExportUpAxis -v y')
-            mel.eval('FBXExportScaleFactor -v 1.0')
-            mel.eval('FBXExportBakeComplexAnimation -v true')
-            mel.eval('FBXExportCameras -v true')
-            
-            # Select camera and related nodes
-            cmds.select(camera, replace=True)
+            # Get the path to publish to
+            publish_path = item.get_publish_path()
+            publish_folder = os.path.dirname(publish_path)
+
+            # Ensure the publish folder exists
+            self.parent.ensure_folder_exists(publish_folder)
+
+            # Get selected objects
+            selection = cmds.ls(selection=True, long=True)
+            if not selection:
+                self.logger.error("No objects selected for export!")
+                return False
+
+            # Export selected objects as FBX
+            temp_dir = tempfile.gettempdir()
+            fbx_filename = f"{item.properties.get('name')}_{item.properties.get('version')}.fbx"
+            fbx_path = os.path.join(temp_dir, fbx_filename)
+
+            self.logger.info(f"Exporting selected objects to FBX: {fbx_path}")
             
             # Export FBX
-            cmds.file(fbx_path, 
-                     force=True, 
-                     options="v=0;", 
-                     type="FBX export", 
-                     preserveReferences=True, 
-                     exportSelected=True)
-            
-            if not UNREAL_AVAILABLE:
-                self.logger.error("Unreal engine not available for rendering")
+            cmds.FBXExport("-f", fbx_path, "-s")
+
+            if not os.path.exists(fbx_path):
+                self.logger.error("Failed to export FBX file!")
                 return False
-                
-            # 2. Import FBX into Unreal and setup sequence
-            imported_asset = unreal.EditorAssetLibrary.import_asset(fbx_path)
+
+            # Create Unreal sequence and render
+            success = self._create_unreal_sequence(fbx_path, publish_path)
+
+            if not success:
+                self.logger.error("Failed to create and render Unreal sequence!")
+                return False
+
+            self.logger.info("Successfully published movie!")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to publish movie: {str(e)}")
+            return False
+
+    def _create_unreal_sequence(self, fbx_path, publish_path):
+        """
+        Import FBX into Unreal and create a level sequence for rendering.
+        """
+        if not UNREAL_AVAILABLE:
+            self.logger.error("Unreal is not available!")
+            return False
+
+        try:
+            # Get settings
+            unreal_project = self.get_setting("Unreal Project Path Template")
+            render_map = self.get_setting("Render Map Path")
+            sequence_path = self.get_setting("Sequence Path")
+            assets_path = self.get_setting("Maya Assets Path")
+
+            # Import FBX
+            import_task = unreal.AssetImportTask()
+            import_task.filename = fbx_path
+            import_task.destination_path = assets_path
+            import_task.save = True
+            
+            self.logger.info(f"Importing FBX: {fbx_path} to {assets_path}")
+            unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([import_task])
+
+            # Open the render map
+            self.logger.info(f"Loading map: {render_map}")
+            unreal.EditorLevelLibrary.load_level(render_map)
+
+            # Get the imported asset
+            asset_name = os.path.splitext(os.path.basename(fbx_path))[0]
+            asset_path = f"{assets_path}/{asset_name}"
+            self.logger.info(f"Loading asset: {asset_path}")
+            imported_asset = unreal.load_asset(asset_path)
+            
             if not imported_asset:
-                self.logger.error("Failed to import FBX into Unreal")
+                self.logger.error(f"Failed to load imported asset: {asset_path}")
                 return False
-                
-            # Create level sequence
-            sequence_name = os.path.splitext(os.path.basename(publish_path))[0]
-            sequence = unreal.LevelSequence.create_level_sequence(sequence_name)
+
+            # Place the asset in the level
+            actor_location = unreal.Vector(0.0, 0.0, 0.0)
+            actor_rotation = unreal.Rotator(0.0, 0.0, 0.0)
+            actor = unreal.EditorLevelLibrary.spawn_actor_from_object(imported_asset, actor_location, actor_rotation)
+
+            # Create or load the sequence
+            if unreal.EditorAssetLibrary.does_asset_exist(sequence_path):
+                self.logger.info(f"Loading existing sequence: {sequence_path}")
+                sequence = unreal.load_asset(sequence_path)
+            else:
+                self.logger.info(f"Creating new sequence: {sequence_path}")
+                sequence = unreal.LevelSequence.create_level_sequence(
+                    os.path.splitext(os.path.basename(sequence_path))[0],
+                    os.path.dirname(sequence_path)
+                )
+
+            if not sequence:
+                self.logger.error("Failed to create/load sequence!")
+                return False
+
+            # Add camera track
+            camera_binding = sequence.add_possessable(actor)
             
-            # Add camera to sequence
-            camera_binding = sequence.add_possessable(imported_asset)
-            
-            # Set sequence range
-            sequence.set_playback_start(start_frame)
-            sequence.set_playback_end(end_frame)
-            
-            # 3. Render with Movie Render Queue
-            output_settings = {
-                "output_directory": publish_folder,
-                "output_resolution": unreal.IntPoint(1920, 1080),
-                "output_format": "mp4",
-                "framerate": unreal.FrameRate(24, 1),
-                "quality": 100
-            }
-            
+            # Set sequence range (1 second at 24fps)
+            sequence.set_playback_start(0)
+            sequence.set_playback_end(24)
+
+            # Save sequence
+            unreal.EditorAssetLibrary.save_loaded_asset(sequence)
+
             # Setup render queue
             queue = unreal.MoviePipelineQueue()
             job = queue.allocate_new_job(unreal.MoviePipelineExecutorJob)
@@ -528,26 +566,28 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             output_setting = config.find_or_add_setting_by_class(
                 unreal.MoviePipelineOutputSetting
             )
-            for key, value in output_settings.items():
-                setattr(output_setting, key, value)
+            
+            # Set output path
+            publish_folder = os.path.dirname(publish_path)
+            output_setting.output_directory = publish_folder
+            output_setting.output_resolution = unreal.IntPoint(1920, 1080)
+            output_setting.output_format = "mp4"
+            output_setting.framerate = unreal.FrameRate(24, 1)
+            output_setting.quality = 100
             
             # Start render
             executor = unreal.MoviePipelinePIEExecutor()
             success = executor.execute(queue)
             
             if success and os.path.exists(publish_path):
-                self.logger.info(
-                    "Movie rendered successfully: %s" % publish_path
-                )
+                self.logger.info(f"Movie rendered successfully: {publish_path}")
                 return True
             else:
-                self.logger.error(
-                    "Failed to render movie: %s" % publish_path
-                )
+                self.logger.error(f"Failed to render movie: {publish_path}")
                 return False
                 
         except Exception as e:
-            self.logger.error("Failed to render movie: %s" % str(e))
+            self.logger.error(f"Failed to render movie: {str(e)}")
             return False
             
         finally:
@@ -557,74 +597,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                     os.remove(fbx_path)
                 except:
                     pass
-
-    def _create_unreal_sequence(self, fbx_path, publish_path):
-        """
-        Import FBX into Unreal and create a level sequence for rendering.
-        """
-        if not UNREAL_AVAILABLE:
-            self.logger.error("Unreal is not available!")
-            return
-
-        # Get settings
-        unreal_project = self.get_setting("Unreal Project Path Template")
-        render_map = self.get_setting("Render Map Path")
-        sequence_path = self.get_setting("Sequence Path")
-        assets_path = self.get_setting("Maya Assets Path")
-
-        # Import FBX
-        import_task = unreal.AssetImportTask()
-        import_task.filename = fbx_path
-        import_task.destination_path = assets_path
-        import_task.save = True
-        unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([import_task])
-
-        # Open the render map
-        unreal.EditorLevelLibrary.load_level(render_map)
-
-        # Get the imported asset
-        imported_asset = unreal.load_asset(f"{assets_path}/{os.path.splitext(os.path.basename(fbx_path))[0]}")
-        if not imported_asset:
-            self.logger.error("Failed to load imported asset!")
-            return
-
-        # Place the asset in the level
-        actor_location = unreal.Vector(0.0, 0.0, 0.0)
-        actor_rotation = unreal.Rotator(0.0, 0.0, 0.0)
-        actor = unreal.EditorLevelLibrary.spawn_actor_from_object(imported_asset, actor_location, actor_rotation)
-
-        # Load the sequence
-        sequence = unreal.load_asset(sequence_path)
-        if not sequence:
-            self.logger.error("Failed to load sequence!")
-            return
-
-        # Add the actor to the sequence
-        binding = unreal.MovieSceneBindingProxy()
-        binding.set_parent(sequence)
-        binding.add_possessable(actor)
-
-        # Configure Movie Render Queue
-        mrq = unreal.MovieRenderQueueSubsystem.get_movie_render_queue()
-        if not mrq:
-            self.logger.error("Failed to get Movie Render Queue subsystem!")
-            return
-
-        # Create render settings
-        settings = unreal.AutomatedLevelSequenceCapture()
-        settings.settings.output_file = publish_path
-        settings.settings.output_format = unreal.MoviePipelineOutputFormat.MP4
-        settings.settings.resolution.x = 1920
-        settings.settings.resolution.y = 1080
-        settings.settings.frame_rate = 30.0
-
-        # Add job to queue and render
-        job = mrq.add_job(settings)
-        if not job:
-            self.logger.error("Failed to add render job to queue!")
-            return
-
-        mrq.render_queue_jobs()
 
     def finalize(self, settings, item):
         """
