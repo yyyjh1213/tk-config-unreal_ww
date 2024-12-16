@@ -50,8 +50,10 @@ paths:
     #
 
     # level sequence review output from unreal
-    unreal.movie_publish:
-        definition: 'seq/{Step}/{ue_sg_sequence_name}/{ue_sg_shot_name}/{Step}/pub/unreal/{ue_folder_ext}/{ue_level_sequence}_{ue_world}_v{version}.{ue_file_ext}'
+    unreal.movie_publish_exr:
+        definition: 'seq/{Step}/{Sequence}/{Shot}/{Step}/pub/unreal/exr/{ue_level_sequence}_{ue_world}_v{version}.exr'
+    unreal.movie_publish_mov:
+        definition: 'seq/{Step}/{Sequence}/{Shot}/{Step}/pub/unreal/mov/{ue_level_sequence}_{ue_world}_v{version}.mov'
     unreal_shot_publish:
         definition: '@shot_root/pub/unreal/{name}.v{version}.nk'
     # The location of FBX exports for Unreal

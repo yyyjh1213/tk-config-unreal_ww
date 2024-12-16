@@ -28,12 +28,12 @@ settings.tk-multi-publish2.unreal.project:
   - name: Render MOV
     hook: "{self}/publish_file.py:{config}/tk-multi-publish2/unreal/publish_movie.py"
     settings:
-      Publish Template: unreal.movie_publish
+      Publish Template: unreal.movie_publish_mov
       Render Format: mov 
   - name: Render EXR
     hook: "{self}/publish_file.py:{config}/tk-multi-publish2/unreal/publish_movie.py"
     settings:
-      Publish Template: unreal.movie_publish
+      Publish Template: unreal.movie_publish_exr
       Render Format: exr
   help_url: *help_url
   location: "@apps.tk-multi-publish2.location"

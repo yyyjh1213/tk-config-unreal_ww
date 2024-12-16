@@ -343,27 +343,45 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             item.properties["unreal_shot"] or "all shots",
         ))
 
-        publish_template = item.properties["publish_template"]
+        # Render Format 설정
+        render_format = settings["Render Format"].value.lower()
+        if render_format not in ["exr", "mov"]:
+            self.logger.error("Render Format setting must be 'exr' or 'mov'. Given: %s" % render_format)
+            return False
+        self._render_format = render_format
+
+        publisher = self.parent
+        # render_format에 따라 템플릿 선택
+        if render_format == "exr":
+            publish_template = publisher.get_template_by_name("unreal.movie_publish_exr")
+        else:
+            publish_template = publisher.get_template_by_name("unreal.movie_publish_mov")
+
+        if not publish_template:
+            self.logger.error("Unable to find a publish template for format: %s" % render_format)
+            return False
+
         context = item.context
 
+        # 폴더 생성 확인
         if not context.filesystem_locations:
             if context.entity:
                 tk = self.parent.sgtk
                 self.logger.info("No filesystem structure found for context. Creating folders for %s %s"
-                                 % (context.entity["type"], context.entity["id"]))
+                                % (context.entity["type"], context.entity["id"]))
                 tk.create_filesystem_structure(context.entity["type"], context.entity["id"])
-                
+
                 if not context.filesystem_locations:
                     self.logger.error("Folders could not be created automatically. Please run folder creation manually.")
                     return False
             else:
                 self.logger.error("No filesystem structure found and context has no entity. "
-                                  "Cannot create folders. Please ensure folders exist.")
+                                "Cannot create folders. Please ensure folders exist.")
                 return False
 
         fields = context.as_template_fields(publish_template)
 
-        # 템플릿에서 Step이 필요한 경우
+        # Step 필드 필요 시
         if 'Step' in publish_template.keys:
             if context.step:
                 fields["Step"] = context.step["name"]
@@ -371,7 +389,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                 self.logger.error("Context does not have a Step defined, but the template requires it.")
                 return False
 
-        # 템플릿에서 Sequence 필드가 필요한 경우 Shot으로부터 Sequence 조회
+        # Sequence 필드 필요 시 Shot으로부터 Sequence 가져오기
         if 'Sequence' in publish_template.keys and context.entity and context.entity["type"] == "Shot":
             sg = self.parent.shotgun
             shot_data = sg.find_one("Shot", [["id", "is", context.entity["id"]]], ["sg_sequence"])
@@ -381,6 +399,11 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             else:
                 self.logger.warning("No sequence found for shot %s, but template requires Sequence." % context.entity["name"])
 
+        # Shot 필드 필요 시 설정
+        if 'Shot' in publish_template.keys and context.entity and context.entity["type"] == "Shot":
+            fields["Shot"] = context.entity["name"]
+
+        # Unreal World, Level Sequence 설정
         unreal_map = unreal.EditorLevelLibrary.get_editor_world()
         unreal_map_path = unreal_map.get_path_name()
         if unreal_map_path.startswith("/Temp/"):
@@ -406,38 +429,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         fields["MM"] = date.month
         fields["DD"] = date.day
 
-        render_format = settings["Render Format"].value.lower()
-        if render_format not in ["exr", "mov"]:
-            self.logger.error("Render Format setting must be 'exr' or 'mov'. Given: %s" % render_format)
-            return False
-        
-        self._render_format = render_format
-
-        # 기존 템플릿 호환을 위해 ue_mov_ext 추가 설정
-        if render_format == "exr":
-            fields["ue_folder_ext"] = "exr"
-            fields["ue_file_ext"] = "exr"
-            fields["ue_mov_ext"] = "exr"  # 기존 템플릿 사용 시 호환
-        else:
-            fields["ue_folder_ext"] = "mov"
-            fields["ue_file_ext"] = "mov"
-            fields["ue_mov_ext"] = "mov"  # 기존 템플릿 사용 시 호환
-
-        use_movie_render_queue = False
-        render_presets = None
-        if hasattr(unreal, "MoviePipelineQueueEngineSubsystem"):
-            use_movie_render_queue = True
-            self.logger.info("Movie Render Queue will be used for rendering.")
-            render_presets_path = settings["Movie Render Queue Presets Path"].value
-            if render_presets_path:
-                self.logger.info("Validating render presets path %s" % render_presets_path)
-                render_presets = unreal.EditorAssetLibrary.load_asset(render_presets_path)
-                for _, reason in self._check_render_settings(render_presets):
-                    self.logger.warning(reason)
-
-        item.properties["use_movie_render_queue"] = use_movie_render_queue
-        item.properties["movie_render_queue_presets"] = render_presets
-
         sequence = unreal.EditorAssetLibrary.load_asset(asset_path)
         if isinstance(sequence, unreal.LevelSequence):
             playback_range = sequence.get_playback_range()
@@ -449,6 +440,7 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             item.properties["frame_rate"] = fps.numerator
             self.logger.info("Sequence frame range: %d to %d at %d fps" % (start_frame, end_frame, fps.numerator))
 
+        # 누락 키 확인
         missing_keys = publish_template.missing_keys(fields)
         if missing_keys:
             self.logger.error(
@@ -480,6 +472,22 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             item.properties["publish_type"] = "Rendered Movie"
 
         item.properties["fields"] = fields
+
+        # Movie Render Queue presets
+        use_movie_render_queue = False
+        render_presets = None
+        if hasattr(unreal, "MoviePipelineQueueEngineSubsystem"):
+            use_movie_render_queue = True
+            self.logger.info("Movie Render Queue will be used for rendering.")
+            render_presets_path = settings["Movie Render Queue Presets Path"].value
+            if render_presets_path:
+                self.logger.info("Validating render presets path %s" % render_presets_path)
+                render_presets = unreal.EditorAssetLibrary.load_asset(render_presets_path)
+                for _, reason in self._check_render_settings(render_presets):
+                    self.logger.warning(reason)
+
+        item.properties["use_movie_render_queue"] = use_movie_render_queue
+        item.properties["movie_render_queue_presets"] = render_presets
 
         self.save_ui_settings(settings)
         return True
