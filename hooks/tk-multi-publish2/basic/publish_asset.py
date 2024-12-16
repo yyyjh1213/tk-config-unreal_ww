@@ -112,10 +112,6 @@ class UnrealAssetPublishPlugin(HookBaseClass):
 
         # 컨텍스트 디버그 로깅
         self.logger.debug("Context: %s" % context)
-        if context.entity:
-            self.logger.debug("Entity: %s" % context.entity)
-        if context.step:
-            self.logger.debug("Step: %s" % context.step)
         
         # 에셋 경로 확인
         asset_path = item.properties.get("unreal_asset_path")
@@ -149,27 +145,27 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             "name": os.path.splitext(os.path.basename(asset_path))[0],
             "YYYY": current_date.year,
             "MM": current_date.month,
-            "DD": current_date.day
+            "DD": current_date.day,
+            "version": 1
         }
 
-        # 컨텍스트에서 필드 가져오기
-        if context.entity:
-            fields["sg_asset_type"] = context.entity.get("sg_asset_type")
-            fields["Asset"] = context.entity.get("code")
-            self.logger.debug("Entity fields - sg_asset_type: %s, Asset: %s" % 
-                            (fields.get("sg_asset_type"), fields.get("Asset")))
-
-        if context.step:
-            fields["Step"] = context.step.get("name")
-            self.logger.debug("Step field: %s" % fields.get("Step"))
-
-        # 버전 필드 설정
-        if item.properties.get("path"):
-            fields["version"] = publisher.util.get_next_version_number(item.properties["path"])
-        else:
-            fields["version"] = 1
-
-        self.logger.debug("Version field: %s" % fields.get("version"))
+        # Additional Fields에서 컨텍스트 값 가져오기
+        additional_fields = settings.get("Additional Fields", {})
+        if additional_fields and additional_fields.value:
+            self.logger.debug("Additional Fields from settings: %s" % additional_fields.value)
+            # 각 필드를 컨텍스트에서 가져와서 처리
+            for key, value_template in additional_fields.value.items():
+                try:
+                    # 컨텍스트 값을 템플릿에서 가져오기
+                    if "{context.entity.sg_asset_type}" in value_template:
+                        fields[key] = context.entity.get("sg_asset_type")
+                    elif "{context.entity.code}" in value_template:
+                        fields[key] = context.entity.get("code")
+                    elif "{context.step.name}" in value_template:
+                        fields[key] = context.step.get("name")
+                    self.logger.debug("Field %s = %s" % (key, fields.get(key)))
+                except Exception as e:
+                    self.logger.warning("필드 %s 처리 중 오류 발생: %s" % (key, str(e)))
 
         # 필수 필드 확인
         required_fields = ["sg_asset_type", "Asset", "Step", "version"]
