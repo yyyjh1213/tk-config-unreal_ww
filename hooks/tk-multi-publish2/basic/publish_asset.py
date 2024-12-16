@@ -59,6 +59,11 @@ class UnrealAssetPublishPlugin(HookBaseClass):
                 "default": None,
                 "description": "Optional folder to use as a root for publishes"
             },
+            "Additional Fields": {
+                "type": "dict",
+                "default": {},
+                "description": "Additional fields to include in the publish template"
+            }
         }
         base_settings.update(publish_template_setting)
         return base_settings
@@ -99,12 +104,6 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         publisher = self.parent
         engine = publisher.engine
         
-        # 컨텍스트에서 필요한 필드 가져오기
-        context = item.context
-        if not context:
-            self.logger.error("컨텍스트를 찾을 수 없습니다.")
-            return False
-
         # 에셋 경로 확인
         asset_path = item.properties.get("unreal_asset_path")
         if not UNREAL_AVAILABLE:
@@ -126,26 +125,20 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         # 현재 날짜 가져오기
         current_date = datetime.datetime.now()
 
-        # 템플릿 필드 설정
+        # 기본 필드 설정
         fields = {
             "name": os.path.splitext(os.path.basename(asset_path))[0],
             "YYYY": current_date.year,
             "MM": current_date.month,
-            "DD": current_date.day
+            "DD": current_date.day,
+            "version": 1  # 기본 버전
         }
 
-        # 컨텍스트에서 필드 가져오기
-        if context.entity:
-            fields["sg_asset_type"] = context.entity.get("sg_asset_type")
-            fields["Asset"] = context.entity.get("code")
-        
-        if context.step:
-            fields["Step"] = context.step.get("name")
-
-        # 버전 필드 설정
-        fields["version"] = 1
-        if "version" not in fields and item.properties.get("path"):
-            fields["version"] = publisher.util.get_next_version_number(item.properties["path"])
+        # settings에서 Additional Fields 가져오기
+        additional_fields = settings.get("Additional Fields", {})
+        if additional_fields and additional_fields.value:
+            self.logger.debug("Additional Fields from settings: %s" % additional_fields.value)
+            fields.update(additional_fields.value)
 
         # 필수 필드 확인
         required_fields = ["sg_asset_type", "Asset", "Step", "version"]
@@ -153,6 +146,7 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         
         if missing_fields:
             self.logger.error("다음 필수 필드가 없습니다: %s" % ", ".join(missing_fields))
+            self.logger.debug("현재 필드: %s" % fields)
             return False
 
         # 퍼블리시 경로 생성
@@ -160,6 +154,7 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             publish_path = publish_template.apply_fields(fields)
             item.properties["path"] = publish_path
             item.properties["publish_path"] = publish_path
+            self.logger.debug("생성된 퍼블리시 경로: %s" % publish_path)
         except Exception as e:
             self.logger.error("퍼블리시 경로 생성 중 오류 발생: %s" % str(e))
             return False
