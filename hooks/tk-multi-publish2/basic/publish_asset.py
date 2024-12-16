@@ -104,90 +104,104 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         publisher = self.parent
         engine = publisher.engine
 
-        # 컨텍스트 확인
+        # Enhanced context validation
         context = item.context
         if not context:
-            self.logger.error("컨텍스트를 찾을 수 없습니다.")
+            self.logger.error("Context is missing")
             return False
 
-        # 컨텍스트 디버그 로깅
-        self.logger.debug("Context: %s" % context)
+        # Detailed context logging
+        self.logger.debug("=== Context Details ===")
+        self.logger.debug(f"Context: {context}")
+        self.logger.debug(f"Context Entity: {context.entity}")
+        self.logger.debug(f"Context Step: {context.step}")
+        self.logger.debug(f"Context Task: {context.task}")
+        self.logger.debug(f"Context User: {context.user}")
+        self.logger.debug(f"Context Project: {context.project}")
         
-        # 에셋 경로 확인
-        asset_path = item.properties.get("unreal_asset_path")
-        if not UNREAL_AVAILABLE:
-            error_msg = "Unreal을 사용할 수 없습니다. 에셋을 내보낼 수 없습니다."
-            self.logger.error(error_msg)
-            raise Exception(error_msg)
+        # Validate entity fields
+        if context.entity:
+            self.logger.debug("=== Entity Fields ===")
+            for field in ['type', 'id', 'name', 'code', 'sg_asset_type']:
+                value = context.entity.get(field)
+                self.logger.debug(f"Entity {field}: {value}")
+        else:
+            self.logger.error("Entity not found in context")
+            return False
 
-        if not asset_path:
-            error_msg = "Unreal에서 에셋 경로를 찾을 수 없습니다."
-            self.logger.error(error_msg)
-            raise Exception(error_msg)
+        # Validate step fields
+        if context.step:
+            self.logger.debug("=== Step Fields ===")
+            for field in ['type', 'id', 'name', 'code']:
+                value = context.step.get(field)
+                self.logger.debug(f"Step {field}: {value}")
+        else:
+            self.logger.error("Step not found in context")
+            return False
 
-        # 퍼블리시 템플릿 가져오기
+        # Get template and validate
         publish_template_name = settings["Publish Template"].value
-        self.logger.debug("퍼블리시 템플릿 이름: %s" % publish_template_name)
-        
         publish_template = publisher.get_template_by_name(publish_template_name)
-        if not publish_template:
-            self.logger.error("퍼블리시 템플릿을 찾을 수 없습니다: %s" % publish_template_name)
-            return False
-
-        self.logger.debug("퍼블리시 템플릿: %s" % publish_template)
-        self.logger.debug("템플릿 필드: %s" % publish_template.keys)
-
-        # 현재 날짜 가져오기
-        current_date = datetime.datetime.now()
-
-        # 기본 필드 설정
-        fields = {
-            "name": os.path.splitext(os.path.basename(asset_path))[0],
-            "YYYY": current_date.year,
-            "MM": current_date.month,
-            "DD": current_date.day,
-            "version": 1
-        }
-
-        # Additional Fields에서 컨텍스트 값 가져오기
-        additional_fields = settings.get("Additional Fields", {})
-        if additional_fields and additional_fields.value:
-            self.logger.debug("Additional Fields from settings: %s" % additional_fields.value)
-            # 각 필드를 컨텍스트에서 가져와서 처리
-            for key, value_template in additional_fields.value.items():
-                try:
-                    # 컨텍스트 값을 템플릿에서 가져오기
-                    if "{context.entity.sg_asset_type}" in value_template:
-                        fields[key] = context.entity.get("sg_asset_type")
-                    elif "{context.entity.code}" in value_template:
-                        fields[key] = context.entity.get("code")
-                    elif "{context.step.name}" in value_template:
-                        fields[key] = context.step.get("name")
-                    self.logger.debug("Field %s = %s" % (key, fields.get(key)))
-                except Exception as e:
-                    self.logger.warning("필드 %s 처리 중 오류 발생: %s" % (key, str(e)))
-
-        # 필수 필드 확인
-        required_fields = ["sg_asset_type", "Asset", "Step", "version"]
-        missing_fields = [field for field in required_fields if not fields.get(field)]
         
-        if missing_fields:
-            self.logger.error("다음 필수 필드가 없습니다: %s" % ", ".join(missing_fields))
-            self.logger.debug("현재 필드: %s" % fields)
+        if not publish_template:
+            self.logger.error(f"Could not find template: {publish_template_name}")
             return False
 
-        # 퍼블리시 경로 생성
+        self.logger.debug("=== Template Details ===")
+        self.logger.debug(f"Template Name: {publish_template_name}")
+        self.logger.debug(f"Template: {publish_template}")
+        self.logger.debug(f"Template Keys: {publish_template.keys}")
+
+        # Prepare fields with enhanced validation
         try:
+            fields = {
+                "Asset": context.entity.get("code"),
+                "Step": context.step.get("name"),
+                "sg_asset_type": context.entity.get("sg_asset_type"),
+                "name": os.path.splitext(os.path.basename(item.properties.get("unreal_asset_path", "")))[0],
+                "version": 1
+            }
+            
+            # Additional fields from settings
+            additional_fields = settings.get("Additional Fields", {})
+            if additional_fields and additional_fields.value:
+                self.logger.debug("=== Additional Fields ===")
+                self.logger.debug(f"Fields from settings: {additional_fields.value}")
+                
+                for key, value_template in additional_fields.value.items():
+                    try:
+                        if "{context.entity.sg_asset_type}" in value_template:
+                            fields[key] = context.entity.get("sg_asset_type")
+                        elif "{context.entity.code}" in value_template:
+                            fields[key] = context.entity.get("code")
+                        elif "{context.step.name}" in value_template:
+                            fields[key] = context.step.get("name")
+                        self.logger.debug(f"Added field {key} = {fields.get(key)}")
+                    except Exception as e:
+                        self.logger.warning(f"Failed to process field {key}: {str(e)}")
+
+            self.logger.debug("=== Final Fields ===")
+            self.logger.debug(f"Fields for template: {fields}")
+
+            # Validate required fields
+            missing_fields = [k for k in publish_template.keys if k not in fields]
+            if missing_fields:
+                self.logger.error(f"Missing required fields: {missing_fields}")
+                return False
+
+            # Try to create publish path
             publish_path = publish_template.apply_fields(fields)
+            self.logger.debug(f"Generated publish path: {publish_path}")
+            
             item.properties["path"] = publish_path
             item.properties["publish_path"] = publish_path
-            self.logger.debug("생성된 퍼블리시 경로: %s" % publish_path)
-        except Exception as e:
-            self.logger.error("퍼블리시 경로 생성 중 오류 발생: %s" % str(e))
-            self.logger.debug("사용된 필드: %s" % fields)
-            return False
+            
+            return True
 
-        return True
+        except Exception as e:
+            self.logger.error(f"Failed to validate publish: {str(e)}")
+            self.logger.error(f"Fields attempted: {fields if 'fields' in locals() else 'Fields not created'}")
+            return False
 
     def publish(self, settings, item):
         """
