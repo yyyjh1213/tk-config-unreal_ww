@@ -171,15 +171,14 @@ settings.tk-multi-publish2.maya.asset_step:
   - name: Additional Items
     hook: "{self}/publish_file.py"
     settings: {}
-    children:
-    - name: Publish FBX to ShotGrid
-      hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/maya_publish_asset.py"
-      settings:
-        Publish Template: maya_asset_publish
-    - name: Publish and Submit for Review
-      hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/publish_movie.py"
-      settings:
-        Publish Template: maya_asset_review
+  - name: Publish FBX to ShotGrid
+    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/maya_publish_asset.py"
+    settings:
+      Publish Template: maya_asset_publish
+  - name: Publish and Submit for Review
+    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/publish_movie.py"
+    settings:
+      Publish Template: maya_asset_review
   - name: All Session Geometry
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session_geometry.py"
     settings:

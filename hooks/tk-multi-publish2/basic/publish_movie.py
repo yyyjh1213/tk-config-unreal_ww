@@ -29,6 +29,9 @@ try:
 except ImportError:
     MAYA_AVAILABLE = False
 
+# Get the engine name to determine the environment
+ENGINE_NAME = os.environ.get("TANK_CURRENT_PC")
+
 # Local storage path field for known Oses.
 _OS_LOCAL_STORAGE_PATH_FIELD = {
     "darwin": "mac_path",
@@ -337,9 +340,9 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         accepted = True
         checked = True
 
-        if sys.platform != "win32":
+        if ENGINE_NAME != "tk-unreal":
             self.logger.warning(
-                "Movie publishing is not supported on other platforms than Windows..."
+                "Movie publishing is not supported on other platforms than Unreal..."
             )
             return {
                 "accepted": False,
@@ -372,197 +375,28 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         if not super(UnrealMoviePublishPlugin, self).validate(settings, item):
             return False
 
-        if UNREAL_AVAILABLE:
+        # Get the path in a normalized state
+        path = sgtk.util.ShotgunPath.normalize(item.properties["path"])
+
+        # Check the environment and validate accordingly
+        if ENGINE_NAME == "tk-unreal":
+            if not UNREAL_AVAILABLE:
+                self.logger.error("Unreal engine not available")
+                return False
             return self._validate_unreal(settings, item)
-        elif MAYA_AVAILABLE:
+        elif ENGINE_NAME == "tk-maya":
+            if not MAYA_AVAILABLE:
+                self.logger.error("Maya environment not available")
+                return False
             return self._validate_maya(settings, item)
         else:
-            self.logger.error("Neither Unreal nor Maya environment detected")
+            self.logger.error("Unsupported environment: %s" % ENGINE_NAME)
             return False
-
-    def _validate_unreal(self, settings, item):
-        """
-        Validates the given item to check that it is ok to publish.
-
-        This method is called in order to validate that a given item is ok to
-        publish, e.g. ensuring that it's at a level of completion suitable for
-        final approval.
-
-        :param settings: Dictionary of Settings. The keys are strings, matching
-            the keys returned in the settings property. The values are `Setting`
-            instances.
-        :param item: Item to process
-        :returns: True if item is valid, False otherwise.
-        """
-        # raise an exception here if something is not valid.
-        # If you use the logger, warnings will appear in the validation tree.
-        # You can attach callbacks that allow users to fix these warnings
-        # at the press of a button.
-        #
-        # For example:
-        #
-        # self.logger.info(
-        #         "Your session is not part of a maya project.",
-        #         extra={
-        #             "action_button": {
-        #                 "label": "Set Project",
-        #                 "tooltip": "Set the maya project",
-        #                 "callback": lambda: mel.eval('setProject ""')
-        #             }
-        #         }
-        #     )
-
-        asset_path = item.properties.get("asset_path")
-        asset_name = item.properties.get("asset_name")
-        if not asset_path or not asset_name:
-            self.logger.debug("Sequence path or name not configured.")
-            return False
-        # Retrieve the Level Sequences sections tree for this Level Sequence.
-        # This is needed to get frame ranges in the "edit" context.
-        edits_path = item.properties.get("edits_path")
-        if not edits_path:
-            self.logger.debug("Edits path not configured.")
-            return False
-
-        self.logger.info("Edits path %s" % edits_path)
-        item.properties["unreal_master_sequence"] = edits_path[0]
-        item.properties["unreal_shot"] = ".".join([lseq.get_name() for lseq in edits_path[1:]])
-        self.logger.info("Master sequence %s, shot %s" % (
-            item.properties["unreal_master_sequence"].get_name(),
-            item.properties["unreal_shot"] or "all shots",
-        ))
-        # Get the configured publish template
-        publish_template = item.properties["publish_template"]
-
-        # Get the context from the Publisher UI
-        context = item.context
-        if UNREAL_AVAILABLE:
-            unreal.log("context: {}".format(context))
-
-        # Query the fields needed for the publish template from the context
-        try:
-            fields = context.as_template_fields(publish_template)
-        except Exception:
-            # We likely failed because of folder creation, trigger that
-            self.parent.sgtk.create_filesystem_structure(
-                context.entity["type"],
-                context.entity["id"],
-                self.parent.engine.instance_name
-            )
-            # In theory, this should now work because we've created folders and
-            # updated the path cache
-            fields = item.context.as_template_fields(publish_template)
-        if UNREAL_AVAILABLE:
-            unreal.log("context fields: {}".format(fields))
-
-        # Ensure that the current map is saved on disk
-        if UNREAL_AVAILABLE:
-            unreal_map = unreal.EditorLevelLibrary.get_editor_world()
-            unreal_map_path = unreal_map.get_path_name()
-
-            # Transient maps are not supported, must be saved on disk
-            if unreal_map_path.startswith("/Temp/"):
-                self.logger.debug("Current map must be saved first.")
-                return False
-
-        # Add the map name to fields
-        if UNREAL_AVAILABLE:
-            world_name = unreal_map.get_name()
-            # Add the Level Sequence to fields, with the shot if any
-            fields["ue_world"] = world_name
-            if len(edits_path) > 1:
-                fields["ue_level_sequence"] = "%s_%s" % (edits_path[0].get_name(), edits_path[-1].get_name())
-            else:
-                fields["ue_level_sequence"] = edits_path[0].get_name()
-
-        # Stash the level sequence and map paths in properties for the render
-        item.properties["unreal_asset_path"] = asset_path
-        if UNREAL_AVAILABLE:
-            item.properties["unreal_map_path"] = unreal_map_path
-
-        # Add a version number to the fields, incremented from the current asset version
-        version_number = 0
-        if UNREAL_AVAILABLE:
-            version_number = self._unreal_asset_get_version(asset_path)
-        version_number = version_number + 1
-        fields["version"] = version_number
-
-        # Add today's date to the fields
-        date = datetime.date.today()
-        fields["YYYY"] = date.year
-        fields["MM"] = date.month
-        fields["DD"] = date.day
-
-        # Check if we can use the Movie Render queue available from 4.26
-        use_movie_render_queue = False
-        render_presets = None
-        if UNREAL_AVAILABLE:
-            if hasattr(unreal, "MoviePipelineQueueEngineSubsystem"):
-                if hasattr(unreal, "MoviePipelineAppleProResOutput"):
-                    use_movie_render_queue = True
-                    self.logger.info("Movie Render Queue will be used for rendering.")
-                    render_presets_path = settings["Movie Render Queue Presets Path"].value
-                    if render_presets_path:
-                        self.logger.info("Validating render presets path %s" % render_presets_path)
-                        render_presets = unreal.EditorAssetLibrary.load_asset(render_presets_path)
-                        for _, reason in self._check_render_settings(render_presets):
-                            self.logger.warning(reason)
-                else:
-                    self.logger.info(
-                        "Apple ProRes Media plugin must be loaded to be able to render with the Movie Render Queue, "
-                        "Level Sequencer will be used for rendering."
-                    )
-
-        if not use_movie_render_queue:
-            if item.properties["unreal_shot"]:
-                raise ValueError("Rendering invidual shots for a sequence is only supported with the Movie Render Queue.")
-            self.logger.info("Movie Render Queue not available, Level Sequencer will be used for rendering.")
-
-        item.properties["use_movie_render_queue"] = use_movie_render_queue
-        item.properties["movie_render_queue_presets"] = render_presets
-        # Set the UE movie extension based on the current platform and rendering engine
-        if use_movie_render_queue:
-            fields["ue_mov_ext"] = "mov"  # mov on all platforms
-        else:
-            if sys.platform == "win32":
-                fields["ue_mov_ext"] = "avi"
-            else:
-                fields["ue_mov_ext"] = "mov"
-        # Ensure the fields work for the publish template
-        missing_keys = publish_template.missing_keys(fields)
-        if missing_keys:
-            error_msg = "Missing keys required for the publish template " \
-                        "%s" % (missing_keys)
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
-
-        publish_path = publish_template.apply_fields(fields)
-        if not os.path.isabs(publish_path):
-            # If the path is not absolute, prepend the publish folder setting.
-            publish_folder = settings["Publish Folder"].value
-            if not publish_folder:
-                publish_folder = unreal.Paths.project_saved_dir()
-            publish_path = os.path.abspath(
-                os.path.join(
-                    publish_folder,
-                    publish_path
-                )
-            )
-        item.properties["path"] = publish_path
-        item.properties["publish_path"] = publish_path
-        item.properties["publish_type"] = "Unreal Render"
-        item.properties["version_number"] = version_number
-        self.save_ui_settings(settings)
-        return True
 
     def _validate_maya(self, settings, item):
         """
         Validate Maya specific settings and requirements
         """
-        # Get the path in a normalized state. no trailing separator, separators are
-        # appropriate for current os, no double separators, etc.
-        path = sgtk.util.ShotgunPath.normalize(item.properties["path"])
-
         # Check that the camera exists
         if not cmds.ls(type="camera"):
             self.logger.error("No camera found in the scene")
@@ -574,143 +408,37 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         """
         Executes the publish logic for the given item and settings.
         """
-        if UNREAL_AVAILABLE:
-            self._publish_unreal(settings, item)
-        elif MAYA_AVAILABLE:
-            self._publish_maya(settings, item)
-        else:
-            self.logger.error("Neither Unreal nor Maya environment detected")
+        publisher = self.parent
+
+        # Get the path in a normalized state
+        path = sgtk.util.ShotgunPath.normalize(item.properties["path"])
+
+        # Determine which environment we're in and publish accordingly
+        try:
+            if ENGINE_NAME == "tk-unreal":
+                if not UNREAL_AVAILABLE:
+                    self.logger.error("Unreal engine not available")
+                    return False
+                self._publish_unreal(settings, item)
+            elif ENGINE_NAME == "tk-maya":
+                if not MAYA_AVAILABLE:
+                    self.logger.error("Maya environment not available")
+                    return False
+                self._publish_maya(settings, item)
+            else:
+                self.logger.error("Unsupported environment: %s" % ENGINE_NAME)
+                return False
+        except Exception as e:
+            self.logger.error("Failed to publish movie: %s" % str(e))
             return False
 
         # Let the base class register the publish
         super(UnrealMoviePublishPlugin, self).publish(settings, item)
 
-    def _publish_unreal(self, settings, item):
-        """
-        Executes the publish logic for the given item and settings.
-
-        :param settings: Dictionary of Settings. The keys are strings, matching
-            the keys returned in the settings property. The values are `Setting`
-            instances.
-        :param item: Item to process
-        """
-
-        # This is where you insert custom information into `item`, like the
-        # path of the file being published or any dependency this publish
-        # has on other publishes.
-
-        # get the path in a normalized state. no trailing separator, separators
-        # are appropriate for current os, no double separators, etc.
-
-        # let the base class register the publish
-
-        publish_path = os.path.normpath(item.properties["publish_path"])
-
-        # Split the destination path into folder and filename
-        destination_folder, movie_name = os.path.split(publish_path)
-        movie_name = os.path.splitext(movie_name)[0]
-
-        # Ensure that the destination path exists before rendering the sequence
-        self.parent.ensure_folder_exists(destination_folder)
-
-        # Get the level sequence and map paths again
-        unreal_asset_path = item.properties["unreal_asset_path"]
-        if UNREAL_AVAILABLE:
-            unreal_map_path = item.properties["unreal_map_path"]
-        unreal.log("movie name: {}".format(movie_name))
-        # Render the movie
-        if item.properties.get("use_movie_render_queue"):
-            presets = item.properties["movie_render_queue_presets"]
-            if presets:
-                self.logger.info("Rendering %s with the Movie Render Queue with %s presets." % (publish_path, presets.get_name()))
-            else:
-                self.logger.info("Rendering %s with the Movie Render Queue." % publish_path)
-            res, _ = self._unreal_render_sequence_with_movie_queue(
-                publish_path,
-                unreal_map_path,
-                unreal_asset_path,
-                presets,
-                item.properties.get("unreal_shot") or None,
-            )
-        else:
-            self.logger.info("Rendering %s with the Level Sequencer." % publish_path)
-            res, _ = self._unreal_render_sequence_with_sequencer(
-                publish_path,
-                unreal_map_path,
-                unreal_asset_path
-            )
-        if not res:
-            raise RuntimeError(
-                "Unable to render %s" % publish_path
-            )
-        # Increment the version number
-        if UNREAL_AVAILABLE:
-            self._unreal_asset_set_version(unreal_asset_path, item.properties["version_number"])
-
-        # Publish the movie file to Shotgun
-        super(UnrealMoviePublishPlugin, self).publish(settings, item)
-
-        # Create a Version entry linked with the new publish
-        # Populate the version data to send to SG
-        self.logger.info("Creating Version...")
-        version_data = {
-            "project": item.context.project,
-            "code": movie_name,
-            "description": item.description,
-            "entity": self._get_version_entity(item),
-            "sg_path_to_movie": publish_path,
-            "sg_task": item.context.task
-        }
-
-        publish_data = item.properties.get("sg_publish_data")
-
-        # If the file was published, add the publish data to the version
-        if publish_data:
-            version_data["published_files"] = [publish_data]
-
-        # Log the version data for debugging
-        self.logger.debug(
-            "Populated Version data...",
-            extra={
-                "action_show_more_info": {
-                    "label": "Version Data",
-                    "tooltip": "Show the complete Version data dictionary",
-                    "text": "<pre>%s</pre>" % (
-                        pprint.pformat(version_data),
-                    )
-                }
-            }
-        )
-
-        # Create the version
-        self.logger.info("Creating version for review...")
-        version = self.parent.shotgun.create("Version", version_data)
-
-        # Stash the version info in the item just in case
-        item.properties["sg_version_data"] = version
-
-        # On windows, ensure the path is utf-8 encoded to avoid issues with
-        # the shotgun api
-        upload_path = str(item.properties.get("publish_path"))
-        if UNREAL_AVAILABLE:
-            unreal.log("upload_path: {}".format(upload_path))
-
-        # Upload the file to SG
-        self.logger.info("Uploading content...")
-        self.parent.shotgun.upload(
-            "Version",
-            version["id"],
-            upload_path,
-            "sg_uploaded_movie"
-        )
-        self.logger.info("Upload complete!")
-
     def _publish_maya(self, settings, item):
         """
         Publish and render movie from Maya
         """
-        # Get the path in a normalized state
-        path = sgtk.util.ShotgunPath.normalize(item.properties["path"])
         publish_path = item.properties["publish_path"]
         
         # Ensure the publish folder exists
@@ -718,40 +446,55 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         self.parent.ensure_folder_exists(publish_folder)
         
         # Get the current camera
-        cameras = cmds.ls(type="camera")
         active_panel = cmds.getPanel(withFocus=True)
         if cmds.getPanel(typeOf=active_panel) == "modelPanel":
             camera = cmds.modelPanel(active_panel, query=True, camera=True)
         else:
-            camera = cameras[0]
+            # Get the first non-default camera
+            all_cameras = cmds.ls(type="camera", long=True)
+            non_default_cameras = [cam for cam in all_cameras 
+                                 if not cmds.camera(cam, query=True, startupCamera=True)]
+            if non_default_cameras:
+                camera = non_default_cameras[0]
+            else:
+                camera = all_cameras[0]
 
         # Set playback range
         start_frame = cmds.playbackOptions(query=True, minTime=True)
         end_frame = cmds.playbackOptions(query=True, maxTime=True)
 
-        # Playblast options
-        playblast_options = {
-            "filename": publish_path,
-            "format": "qt",
-            "compression": "H.264",
-            "quality": 100,
-            "width": 1920,
-            "height": 1080,
-            "percent": 100,
-            "showOrnaments": False,
-            "clearCache": True,
-            "viewer": False,
-            "startTime": start_frame,
-            "endTime": end_frame,
-            "camera": camera,
-            "offScreen": True
-        }
+        # Store current viewport settings
+        current_panel = cmds.getPanel(withFocus=True)
+        original_settings = {}
+        if cmds.getPanel(typeOf=current_panel) == "modelPanel":
+            original_settings["displayAppearance"] = cmds.modelEditor(current_panel, query=True, displayAppearance=True)
+            original_settings["displayTextures"] = cmds.modelEditor(current_panel, query=True, displayTextures=True)
+            original_settings["displayLights"] = cmds.modelEditor(current_panel, query=True, displayLights=True)
+
+            # Set viewport for high quality playblast
+            cmds.modelEditor(current_panel, edit=True,
+                           displayAppearance="smoothShaded",
+                           displayTextures=True,
+                           displayLights="all")
 
         try:
-            # Make sure viewport is in smooth shade mode
-            current_panel = cmds.getPanel(withFocus=True)
-            if cmds.getPanel(typeOf=current_panel) == "modelPanel":
-                cmds.modelEditor(current_panel, edit=True, displayAppearance="smoothShaded")
+            # Playblast options
+            playblast_options = {
+                "filename": publish_path,
+                "format": "qt",
+                "compression": "H.264",
+                "quality": 100,
+                "width": 1920,
+                "height": 1080,
+                "percent": 100,
+                "showOrnaments": False,
+                "clearCache": True,
+                "viewer": False,
+                "startTime": start_frame,
+                "endTime": end_frame,
+                "camera": camera,
+                "offScreen": True
+            }
 
             # Create playblast
             temp_movie = cmds.playblast(**playblast_options)
@@ -770,6 +513,12 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         except Exception as e:
             self.logger.error("Failed to render movie: %s" % str(e))
             return False
+
+        finally:
+            # Restore viewport settings
+            if cmds.getPanel(typeOf=current_panel) == "modelPanel":
+                for setting, value in original_settings.items():
+                    cmds.modelEditor(current_panel, edit=True, **{setting: value})
 
     def finalize(self, settings, item):
         """
