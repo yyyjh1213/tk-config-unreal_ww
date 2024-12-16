@@ -47,7 +47,7 @@ paths:
         definition: '@shot_root/pub/unreal/{name}.v{version}.nk'
     # The location of FBX exports for Unreal
     unreal.maya_asset_fbx_publish:
-        definition: '@asset_root/pub/fbx/{name}.{Step}.v{version}.fbx'
+        definition: '@asset_root/pub/unreal/fbx/{name}.{Step}.v{version}.fbx'
     # The location of turntable review output rendered in Unreal
     unreal.maya_turntable_render:
         definition: '@asset_root/dev/images/{name}_turntable_v{version}.{ue_mov_ext}'
