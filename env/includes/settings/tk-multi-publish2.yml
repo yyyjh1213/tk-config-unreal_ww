@@ -53,11 +53,11 @@ settings.tk-multi-publish2.3dsmax.asset_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish 3dsMax Session
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
         Publish Template: max_asset_publish
-  - name: Publish Session Geometry
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session_geometry.py"
     settings:
         Publish Template: asset_alembic_cache
@@ -79,7 +79,7 @@ settings.tk-multi-publish2.3dsmax.shot_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish 3dsMax Session
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
         Publish Template: max_shot_publish
@@ -105,7 +105,7 @@ settings.tk-multi-publish2.houdini.asset_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish Houdini Session
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
         Publish Template: houdini_asset_publish
@@ -127,7 +127,7 @@ settings.tk-multi-publish2.houdini.shot_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish Houdini Session
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
         Publish Template: houdini_shot_publish
@@ -145,7 +145,7 @@ settings.tk-multi-publish2.mari.asset_step:
   - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py"
     settings: {}
-  - name: Publish Mari Textures
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_mari_textures.py"
     settings:
       Publish Template: asset_mari_texture_tif
@@ -174,7 +174,7 @@ settings.tk-multi-publish2.maya.asset_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish Maya Session
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
         Publish Template: maya_asset_publish
@@ -186,7 +186,7 @@ settings.tk-multi-publish2.maya.asset_step:
     hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/publish_movie.py"
     settings:
       Publish Template: maya_asset_review
-  - name: Publish Session Geometry
+  - name: All Session Geometry
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session_geometry.py"
     settings:
       Publish Template: asset_alembic_cache
@@ -208,7 +208,7 @@ settings.tk-multi-publish2.maya.shot_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish Maya Session
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
         Publish Template: maya_shot_publish
@@ -238,7 +238,7 @@ settings.tk-multi-publish2.nuke.asset_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/nuke_start_version_control.py"
     settings: {}
-  - name: Publish Nuke Script
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/nuke_publish_script.py"
     settings:
         Publish Template: nuke_asset_publish
@@ -263,7 +263,7 @@ settings.tk-multi-publish2.nuke.shot_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/nuke_start_version_control.py"
     settings: {}
-  - name: Publish Nuke Script
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/nuke_publish_script.py"
     settings:
         Publish Template: nuke_shot_publish
@@ -295,7 +295,7 @@ settings.tk-multi-publish2.nukestudio:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/nukestudio_start_version_control.py"
     settings: {}
-  - name: Publish NukeStudio Project
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/nukestudio_publish_project.py"
     settings:
         Publish Template: hiero_project_publish
@@ -321,14 +321,14 @@ settings.tk-multi-publish2.photoshop.asset_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish Photoshop Document
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_document.py"
     settings:
         Publish Template: photoshop_asset_publish
   - name: Upload for review
     hook: "{engine}/tk-multi-publish2/basic/upload_version.py"
     settings: {}
-  - name: Publish PNG
+  - name: Publish PNG to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_image.py"
     settings:
       Publish Template: photoshop_asset_png_publish
@@ -336,7 +336,7 @@ settings.tk-multi-publish2.photoshop.asset_step:
         format: PNG
         PNG8: False
         quality: 100
-  - name: Publish JPEG
+  - name: Publish JPEG to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_image.py"
     settings:
       Publish Template: photoshop_asset_jpg_publish
@@ -361,14 +361,14 @@ settings.tk-multi-publish2.photoshop.shot_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish Photoshop Document
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_document.py"
     settings:
         Publish Template: photoshop_shot_publish
   - name: Upload for review
     hook: "{engine}/tk-multi-publish2/basic/upload_version.py"
     settings: {}
-  - name: Publish PNG
+  - name: Publish PNG to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_image.py"
     settings:
       Publish Template: photoshop_shot_png_publish
@@ -376,7 +376,7 @@ settings.tk-multi-publish2.photoshop.shot_step:
         format: PNG
         PNG8: False
         quality: 100
-  - name: Publish JPEG
+  - name: Publish JPEG to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_image.py"
     settings:
       Publish Template: photoshop_shot_jpg_publish
@@ -415,10 +415,10 @@ settings.tk-multi-publish2.aftereffects.asset_step:
         Publish Movie Template: aftereffects_asset_render_movie
         Default Sequence Output Module: TIFF Sequence with Alpha
         Default Movie Output Module: Lossless with Alpha
-  - name: Publish Renderings
+  - name: Publish Renderings to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_rendering.py"
     settings: {}
-  - name: Publish After Effects Document
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_document.py"
     settings:
         Publish Template: aftereffects_asset_publish
@@ -451,10 +451,10 @@ settings.tk-multi-publish2.aftereffects.shot_step:
         Publish Movie Template: aftereffects_shot_render_movie
         Default Sequence Output Module: TIFF Sequence with Alpha
         Default Movie Output Module: Lossless with Alpha
-  - name: Publish Renderings
+  - name: Publish Renderings to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_rendering.py"
     settings: {}
-  - name: Publish After Effects Document
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_document.py"
     settings:
         Publish Template: aftereffects_shot_publish
@@ -484,7 +484,7 @@ settings.tk-multi-publish2.motion_builder.asset_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish Motion Builder Session
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
       Publish Template: mobu_asset_publish
@@ -506,7 +506,7 @@ settings.tk-multi-publish2.motion_builder.shot_step:
   - name: Begin file versioning
     hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
     settings: {}
-  - name: Publish Motion Builder Session
+  - name: Publish to Flow Production Tracking
     hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
     settings:
       Publish Template: mobu_shot_publish
@@ -533,7 +533,7 @@ settings.tk-multi-publish2.alias.asset_step:
    - name: Begin file versioning
      hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
      settings: {}
-   - name: Publish Alias Session
+   - name: Publish to Flow Production Tracking
      hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
      settings:
        Publish Template: alias_asset_publish
@@ -541,14 +541,14 @@ settings.tk-multi-publish2.alias.asset_step:
      hook: "{self}/upload_version.py:{engine}/tk-multi-publish2/basic/upload_version.py"
      settings:
        Version Type: 2D Version
-   - name: Publish CATPart
+   - name: Publish CATPart to Flow Production Tracking
      hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_translation.py"
      settings:
        Publish Template: alias_asset_catpart_publish
-   - name: Publish Variants
+   - name: Publish Variants to Flow Production Tracking
      hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_variants.py"
      settings: {}
-   - name: Publish Annotations
+   - name: Publish Annotations to Flow Production Tracking
      hook: "{engine}/tk-multi-publish2/basic/publish_annotations.py"
      settings: {}
    - name: Create VRED Scene
@@ -581,7 +581,7 @@ settings.tk-multi-publish2.vred.asset_step:
    - name: Begin file versioning
      hook: "{engine}/tk-multi-publish2/basic/start_version_control.py"
      settings: {}
-   - name: Publish VRED Session
+   - name: Publish to Flow Production Tracking
      hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
      settings:
        Publish Template: vred_asset_publish
@@ -589,7 +589,7 @@ settings.tk-multi-publish2.vred.asset_step:
      hook: "{self}/upload_version.py:{engine}/tk-multi-publish2/basic/upload_session_version.py"
      settings:
        Version Type: 2D Version
-   - name: Publish Rendering
+   - name: Publish Rendering to Flow Production Tracking
      hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_rendering.py"
      settings:
        Publish Image Template: vred_asset_render_publish
