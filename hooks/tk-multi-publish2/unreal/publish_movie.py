@@ -307,7 +307,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             item.properties["unreal_shot"] or "all shots",
         ))
 
-        # Render Format 설정
         render_format = settings["Render Format"].value.lower()
         if render_format not in ["exr", "mov"]:
             self.logger.error("Render Format setting must be 'exr' or 'mov'. Given: %s" % render_format)
@@ -315,7 +314,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         self._render_format = render_format
 
         publisher = self.parent
-        # render_format에 따라 템플릿 선택 (unreal.movie_publish_exr / unreal.movie_publish_mov)
         if render_format == "exr":
             publish_template = publisher.get_template_by_name("unreal.movie_publish_exr")
         else:
@@ -327,7 +325,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         context = item.context
 
-        # 폴더 생성 확인
         if not context.filesystem_locations:
             if context.entity:
                 tk = self.parent.sgtk
@@ -345,7 +342,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         fields = context.as_template_fields(publish_template)
 
-        # Step 필드 필요 시
         if 'Step' in publish_template.keys:
             if context.step:
                 fields["Step"] = context.step["name"]
@@ -353,7 +349,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                 self.logger.error("Context does not have a Step defined, but the template requires it.")
                 return False
 
-        # Sequence 필드 필요 시 Shot으로부터 Sequence 가져오기
         if 'Sequence' in publish_template.keys and context.entity and context.entity["type"] == "Shot":
             sg = self.parent.shotgun
             shot_data = sg.find_one("Shot", [["id", "is", context.entity["id"]]], ["sg_sequence"])
@@ -363,11 +358,9 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             else:
                 self.logger.warning("No sequence found for shot %s, but template requires Sequence." % context.entity["name"])
 
-        # Shot 필드 필요 시 설정
         if 'Shot' in publish_template.keys and context.entity and context.entity["type"] == "Shot":
             fields["Shot"] = context.entity["name"]
 
-        # Unreal World, Level Sequence 설정
         unreal_map = unreal.EditorLevelLibrary.get_editor_world()
         unreal_map_path = unreal_map.get_path_name()
         if unreal_map_path.startswith("/Temp/"):
@@ -385,8 +378,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         item.properties["unreal_asset_path"] = asset_path
         item.properties["unreal_map_path"] = unreal_map_path
 
-        # 첫 퍼블리시시 v001로 시작하도록 고정. 
-        # 에셋 메타데이터나 파일명 재분석 로직 제거.
         version_number = 1
         fields["version"] = version_number
 
@@ -406,7 +397,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             item.properties["frame_rate"] = fps.numerator
             self.logger.info("Sequence frame range: %d to %d at %d fps" % (start_frame, end_frame, fps.numerator))
 
-        # 누락 키 확인
         missing_keys = publish_template.missing_keys(fields)
         if missing_keys:
             self.logger.error("Missing keys required for the publish template: {}".format(missing_keys))
