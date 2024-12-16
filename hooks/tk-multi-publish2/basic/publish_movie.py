@@ -3,7 +3,7 @@
 # file included in this repository.
 
 import sgtk
-import unreal
+import sys
 from tank_vendor import six
 
 import copy
@@ -11,8 +11,15 @@ import datetime
 import os
 import pprint
 import subprocess
-import sys
 import tempfile
+
+# Import unreal module only when in Unreal environment
+try:
+    import unreal
+    UNREAL_AVAILABLE = True
+except ImportError:
+    UNREAL_AVAILABLE = False
+    unreal = None
 
 # Local storage path field for known Oses.
 _OS_LOCAL_STORAGE_PATH_FIELD = {
@@ -148,9 +155,10 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         settings_frame.unreal_render_presets_label = QtGui.QLabel("Render with Movie Pipeline Presets:")
         settings_frame.unreal_render_presets_widget = QtGui.QComboBox()
         settings_frame.unreal_render_presets_widget.addItem("No presets")
-        presets_folder = unreal.MovieRenderPipelineProjectSettings().preset_save_dir
-        for preset in unreal.EditorAssetLibrary.list_assets(presets_folder.path):
-            settings_frame.unreal_render_presets_widget.addItem(preset.split(".")[0])
+        if UNREAL_AVAILABLE:
+            presets_folder = unreal.MovieRenderPipelineProjectSettings().preset_save_dir
+            for preset in unreal.EditorAssetLibrary.list_assets(presets_folder.path):
+                settings_frame.unreal_render_presets_widget.addItem(preset.split(".")[0])
 
         settings_frame.unreal_publish_folder_label = QtGui.QLabel("Publish folder:")
         storage_roots = self.parent.shotgun.find(
@@ -402,7 +410,8 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         # Get the context from the Publisher UI
         context = item.context
-        unreal.log("context: {}".format(context))
+        if UNREAL_AVAILABLE:
+            unreal.log("context: {}".format(context))
 
         # Query the fields needed for the publish template from the context
         try:
@@ -417,32 +426,38 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             # In theory, this should now work because we've created folders and
             # updated the path cache
             fields = item.context.as_template_fields(publish_template)
-        unreal.log("context fields: {}".format(fields))
+        if UNREAL_AVAILABLE:
+            unreal.log("context fields: {}".format(fields))
 
         # Ensure that the current map is saved on disk
-        unreal_map = unreal.EditorLevelLibrary.get_editor_world()
-        unreal_map_path = unreal_map.get_path_name()
+        if UNREAL_AVAILABLE:
+            unreal_map = unreal.EditorLevelLibrary.get_editor_world()
+            unreal_map_path = unreal_map.get_path_name()
 
-        # Transient maps are not supported, must be saved on disk
-        if unreal_map_path.startswith("/Temp/"):
-            self.logger.debug("Current map must be saved first.")
-            return False
+            # Transient maps are not supported, must be saved on disk
+            if unreal_map_path.startswith("/Temp/"):
+                self.logger.debug("Current map must be saved first.")
+                return False
 
         # Add the map name to fields
-        world_name = unreal_map.get_name()
-        # Add the Level Sequence to fields, with the shot if any
-        fields["ue_world"] = world_name
-        if len(edits_path) > 1:
-            fields["ue_level_sequence"] = "%s_%s" % (edits_path[0].get_name(), edits_path[-1].get_name())
-        else:
-            fields["ue_level_sequence"] = edits_path[0].get_name()
+        if UNREAL_AVAILABLE:
+            world_name = unreal_map.get_name()
+            # Add the Level Sequence to fields, with the shot if any
+            fields["ue_world"] = world_name
+            if len(edits_path) > 1:
+                fields["ue_level_sequence"] = "%s_%s" % (edits_path[0].get_name(), edits_path[-1].get_name())
+            else:
+                fields["ue_level_sequence"] = edits_path[0].get_name()
 
         # Stash the level sequence and map paths in properties for the render
         item.properties["unreal_asset_path"] = asset_path
-        item.properties["unreal_map_path"] = unreal_map_path
+        if UNREAL_AVAILABLE:
+            item.properties["unreal_map_path"] = unreal_map_path
 
         # Add a version number to the fields, incremented from the current asset version
-        version_number = self._unreal_asset_get_version(asset_path)
+        version_number = 0
+        if UNREAL_AVAILABLE:
+            version_number = self._unreal_asset_get_version(asset_path)
         version_number = version_number + 1
         fields["version"] = version_number
 
@@ -455,21 +470,22 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         # Check if we can use the Movie Render queue available from 4.26
         use_movie_render_queue = False
         render_presets = None
-        if hasattr(unreal, "MoviePipelineQueueEngineSubsystem"):
-            if hasattr(unreal, "MoviePipelineAppleProResOutput"):
-                use_movie_render_queue = True
-                self.logger.info("Movie Render Queue will be used for rendering.")
-                render_presets_path = settings["Movie Render Queue Presets Path"].value
-                if render_presets_path:
-                    self.logger.info("Validating render presets path %s" % render_presets_path)
-                    render_presets = unreal.EditorAssetLibrary.load_asset(render_presets_path)
-                    for _, reason in self._check_render_settings(render_presets):
-                        self.logger.warning(reason)
-            else:
-                self.logger.info(
-                    "Apple ProRes Media plugin must be loaded to be able to render with the Movie Render Queue, "
-                    "Level Sequencer will be used for rendering."
-                )
+        if UNREAL_AVAILABLE:
+            if hasattr(unreal, "MoviePipelineQueueEngineSubsystem"):
+                if hasattr(unreal, "MoviePipelineAppleProResOutput"):
+                    use_movie_render_queue = True
+                    self.logger.info("Movie Render Queue will be used for rendering.")
+                    render_presets_path = settings["Movie Render Queue Presets Path"].value
+                    if render_presets_path:
+                        self.logger.info("Validating render presets path %s" % render_presets_path)
+                        render_presets = unreal.EditorAssetLibrary.load_asset(render_presets_path)
+                        for _, reason in self._check_render_settings(render_presets):
+                            self.logger.warning(reason)
+                else:
+                    self.logger.info(
+                        "Apple ProRes Media plugin must be loaded to be able to render with the Movie Render Queue, "
+                        "Level Sequencer will be used for rendering."
+                    )
 
         if not use_movie_render_queue:
             if item.properties["unreal_shot"]:
@@ -513,25 +529,6 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         self.save_ui_settings(settings)
         return True
 
-    def _check_render_settings(self, render_config):
-        """
-        Check settings from the given render preset and report which ones are problematic and why.
-
-        :param render_config: An Unreal Movie Pipeline render config.
-        :returns: A potentially empty list of tuples, where each tuple is a setting and a string explaining the problem.
-        """
-        invalid_settings = []
-        # To avoid having multiple outputs, only keep the main render pass and the expected output format.
-        for setting in render_config.get_all_settings():
-            # Check for render passes. Since some classes derive from MoviePipelineDeferredPassBase, which is what we want to only keep
-            # we can't use isinstance and use type instead.
-            if isinstance(setting, unreal.MoviePipelineImagePassBase) and type(setting) != unreal.MoviePipelineDeferredPassBase:
-                invalid_settings.append((setting, "Render pass %s would cause multiple outputs" % setting.get_name()))
-            # Check rendering outputs
-            elif isinstance(setting, unreal.MoviePipelineOutputBase) and not isinstance(setting, unreal.MoviePipelineAppleProResOutput):
-                invalid_settings.append((setting, "Render output %s would cause multiple outputs" % setting.get_name()))
-        return invalid_settings
-
     def publish(self, settings, item):
         """
         Executes the publish logic for the given item and settings.
@@ -562,7 +559,8 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         # Get the level sequence and map paths again
         unreal_asset_path = item.properties["unreal_asset_path"]
-        unreal_map_path = item.properties["unreal_map_path"]
+        if UNREAL_AVAILABLE:
+            unreal_map_path = item.properties["unreal_map_path"]
         unreal.log("movie name: {}".format(movie_name))
         # Render the movie
         if item.properties.get("use_movie_render_queue"):
@@ -590,7 +588,8 @@ class UnrealMoviePublishPlugin(HookBaseClass):
                 "Unable to render %s" % publish_path
             )
         # Increment the version number
-        self._unreal_asset_set_version(unreal_asset_path, item.properties["version_number"])
+        if UNREAL_AVAILABLE:
+            self._unreal_asset_set_version(unreal_asset_path, item.properties["version_number"])
 
         # Publish the movie file to Shotgun
         super(UnrealMoviePublishPlugin, self).publish(settings, item)
@@ -637,7 +636,8 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         # On windows, ensure the path is utf-8 encoded to avoid issues with
         # the shotgun api
         upload_path = str(item.properties.get("publish_path"))
-        unreal.log("upload_path: {}".format(upload_path))
+        if UNREAL_AVAILABLE:
+            unreal.log("upload_path: {}".format(upload_path))
 
         # Upload the file to SG
         self.logger.info("Uploading content...")
@@ -674,6 +674,8 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             return None
 
     def _unreal_asset_get_version(self, asset_path):
+        if not UNREAL_AVAILABLE:
+            return 0
         asset = unreal.EditorAssetLibrary.load_asset(asset_path)
         version_number = 0
 
@@ -696,6 +698,8 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         return version_number
 
     def _unreal_asset_set_version(self, asset_path, version_number):
+        if not UNREAL_AVAILABLE:
+            return
         asset = unreal.EditorAssetLibrary.load_asset(asset_path)
 
         if not asset:
@@ -712,6 +716,25 @@ class UnrealMoviePublishPlugin(HookBaseClass):
         engine = sgtk.platform.current_engine()
         for dialog in engine.created_qt_dialogs:
             dialog.raise_()
+
+    def _check_render_settings(self, render_config):
+        """
+        Check settings from the given render preset and report which ones are problematic and why.
+
+        :param render_config: An Unreal Movie Pipeline render config.
+        :returns: A potentially empty list of tuples, where each tuple is a setting and a string explaining the problem.
+        """
+        invalid_settings = []
+        # To avoid having multiple outputs, only keep the main render pass and the expected output format.
+        for setting in render_config.get_all_settings():
+            # Check for render passes. Since some classes derive from MoviePipelineDeferredPassBase, which is what we want to only keep
+            # we can't use isinstance and use type instead.
+            if isinstance(setting, unreal.MoviePipelineImagePassBase) and type(setting) != unreal.MoviePipelineDeferredPassBase:
+                invalid_settings.append((setting, "Render pass %s would cause multiple outputs" % setting.get_name()))
+            # Check rendering outputs
+            elif isinstance(setting, unreal.MoviePipelineOutputBase) and not isinstance(setting, unreal.MoviePipelineAppleProResOutput):
+                invalid_settings.append((setting, "Render output %s would cause multiple outputs" % setting.get_name()))
+        return invalid_settings
 
     def _unreal_render_sequence_with_sequencer(self, output_path, unreal_map_path, sequence_path):
         """
@@ -767,11 +790,12 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             "-NoScreenMessages",
         ]
 
-        unreal.log(
-            "Sequencer command-line arguments: {}".format(
-                " ".join(cmdline_args)
+        if UNREAL_AVAILABLE:
+            unreal.log(
+                "Sequencer command-line arguments: {}".format(
+                    " ".join(cmdline_args)
+                )
             )
-        )
 
         # Make a shallow copy of the current environment and clear some variables
         run_env = copy.copy(os.environ)
@@ -932,11 +956,12 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             # This need to be a path relative the to the Unreal project "Saved" folder.
             "-MoviePipelineConfig=\"%s\"" % manifest_path,
         ]
-        unreal.log(
-            "Movie Queue command-line arguments: {}".format(
-                " ".join(cmd_args)
+        if UNREAL_AVAILABLE:
+            unreal.log(
+                "Movie Queue command-line arguments: {}".format(
+                    " ".join(cmd_args)
+                )
             )
-        )
         # Make a shallow copy of the current environment and clear some variables
         run_env = copy.copy(os.environ)
         # Prevent SG TK to try to bootstrap in the new process
