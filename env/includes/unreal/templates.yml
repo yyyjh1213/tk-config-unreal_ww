@@ -74,7 +74,6 @@ paths:
     # The location of published assets from Unreal
     unreal.asset_publish:
         definition: '@asset_root/pub/unreal/{sg_asset_type}/{Asset}/{name}.{Step}.v{version}.fbx'
-        root_name: project_root
 
 strings:
    # entity-specific templates for importing files into the Unreal content browser
