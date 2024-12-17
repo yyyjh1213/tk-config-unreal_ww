@@ -615,13 +615,13 @@ paths:
     # The location of backups of WIP files
     maya_asset_snapshot:
         definition: '@asset_root/dev/maya/snapshots/{name}.v{version}[_{name}].{timestamp}.{extension}'
-    # The location of review images
-    maya_asset_review:
-        definition: '@asset_root/review/{name}.{Step}.turntable.v{version}.{extension}'
     # The location of published maya files
     maya_asset_publish:
         definition: '@asset_root/pub/maya/{extension}/{name}.{Step}.v{version}.{extension}'
         root_name: primary
+    # # The location of review images
+    # maya_asset_review:
+    #     definition: '@asset_root/review/{name}.{Step}.turntable.v{version}.{extension}'
     # # The location of published maya fbx files
     # maya_asset_publish_fbx:
     #     definition: '@asset_root/pub/maya/fbx/{name}.{Step}.v{version}.fbx'
