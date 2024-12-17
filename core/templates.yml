@@ -360,10 +360,10 @@ paths:
     maya_shot_publish:
         definition: '@shot_root/pub/maya/{extension}/{name}.v{version}.{extension}'
         root_name: primary
-
-    maya_shot_fbx:
-        definition: '@shot_root/pub/fbx/{name}/v{version}/{Shot}_{name}_v{version}.fbx'
-        root_name: primary
+    # # The location of published maya fbx files
+    # maya_shot_fbx:
+    #     definition: '@shot_root/pub/maya/fbx/{name}/v{version}/{Shot}_{name}_v{version}.fbx'
+    #     root_name: primary
 
     #
     # Houdini
@@ -622,10 +622,10 @@ paths:
     maya_asset_publish:
         definition: '@asset_root/pub/maya/{extension}/{name}.{Step}.v{version}.{extension}'
         root_name: primary
-    # The location of published maya fbx files
-    maya_asset_publish_fbx:
-        definition: '@asset_root/pub/maya/fbx/{name}.{Step}.v{version}.fbx'
-        root_name: primary
+    # # The location of published maya fbx files
+    # maya_asset_publish_fbx:
+    #     definition: '@asset_root/pub/maya/fbx/{name}.{Step}.v{version}.fbx'
+    #     root_name: primary
     #
     # Houdini
     #
