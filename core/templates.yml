@@ -147,16 +147,6 @@ keys:
     asset_namespace:
         type: str
 
-    shot_file_extension:
-        type: str
-        choices:
-            usd: USD
-            abc: Alembic
-            ma: Maya Ascii
-            mb: Maya Binary
-    number:
-        type: int
-
     # needed by the Alias import as reference functionality
     alias.extension:
         type: str
@@ -358,7 +348,7 @@ paths:
         definition: '@shot_root/pub/maya'
     # The location of WIP files
     maya_shot_work:
-        definition: '@shot_root/dev/maya/{name}.v{version}.{maya_extension}'
+        definition: '@shot_root/dev/maya/{Shot}_{Step}.v{version}.{maya_extension}'
         root_name: primary
     # The location of backups of WIP files
     maya_shot_snapshot:
@@ -617,7 +607,7 @@ paths:
         definition: '@asset_root/pub/maya'
     # The location of WIP files
     maya_asset_work:
-        definition: '@asset_root/dev/maya/{name}.{Step}.v{version}.{maya_extension}'
+        definition: '@asset_root/dev/maya/{Asset}_{Step}.v{version}.{maya_extension}'
         root_name: primary
     # The location of backups of WIP files
     maya_asset_snapshot:
