@@ -49,6 +49,79 @@
      ```
    - **영향**: FBX 파일이 이제 전용 unreal/fbx 하위 디렉토리에 저장됨
 
+## 컨텍스트 필드 검증 개선
+
+### 변경 사항
+
+1. **컨텍스트 필드 검증 로직 개선** (`context_fields.py`)
+   - **문제**: 필드 검증이 충분히 엄격하지 않아 잘못된 데이터가 publish될 수 있음
+   - **해결**:
+     - 기본값 사용을 제거하고 필수 필드 누락 시 명확한 에러 메시지 출력
+     - 각 필드(`Asset`, `sg_asset_type`, `Step`)를 개별적으로 검증
+     - 필드 검증 실패 시 즉시 `None` 반환하여 실패를 명확히 표시
+
+2. **Publish 로직 개선** (`publish_asset.py`)
+   - **문제**: 중복된 필드 검증 로직과 불명확한 에러 처리
+   - **해결**:
+     - `context_fields.py`를 사용하여 필드를 가져오도록 수정
+     - 중복된 필드 검증 로직 제거
+     - 에러 처리 및 로깅 개선
+
+### 설정 파일 업데이트
+
+1. **Publish Asset 경로 수정** (`tk-multi-publish2.yml`)
+   ```yaml
+   # Unreal 설정에서 publish_asset.py 경로를 config 경로로 변경
+   hook: "{self}/publish_file.py:{config}/hooks/tk-multi-publish2/basic/publish_asset.py"
+   ```
+
+2. **Publish 메뉴 활성화** (`tk-unreal.yml`)
+   - **문제**: Unreal Editor에서 Publish 메뉴가 보이지 않음
+   - **해결**:
+     ```yaml
+     # run_at_startup에 tk-multi-publish2 추가
+     run_at_startup:
+     - {app_instance: tk-multi-shotgunpanel, name: ''}
+     - {app_instance: tk-multi-publish2, name: 'Publish...'}
+     ```
+
+### 수정된 파일
+
+1. `hooks/tk-multi-publish2/basic/context_fields.py`
+   - 필드 검증 로직 강화
+   - 에러 메시지 개선
+   - 기본값 사용 제거
+
+2. `hooks/tk-multi-publish2/basic/publish_asset.py`
+   - `context_fields.py` 통합
+   - 필드 검증 로직 단순화
+   - 에러 처리 개선
+
+3. `env/includes/unreal/settings/tk-multi-publish2.yml`
+   - publish_asset.py 경로 수정
+   - config 경로 사용하도록 변경
+
+4. `env/includes/unreal/settings/tk-unreal.yml`
+   - Publish 메뉴 활성화 설정 추가
+
+### 다음 단계
+
+1. **테스트**:
+   - Unreal Editor 재시작하여 Publish 메뉴 확인
+   - 에셋 publish 테스트
+   - 필드 검증 동작 확인
+   - 에러 메시지 출력 확인
+
+2. **모니터링**:
+   - 새로운 필드 검증 로직 모니터링
+   - 사용자 피드백 수집
+   - 에러 메시지의 유용성 평가
+
+3. **문서화**:
+   - 새로운 필드 검증 로직 문서화
+   - 에러 메시지 가이드 작성
+   - 팀원들에게 변경 사항 공유
+
 ### 수정된 파일
 
 1. `env/includes/settings/tk-maya.yml`
