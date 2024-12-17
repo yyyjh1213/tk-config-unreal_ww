@@ -33,9 +33,9 @@ settings.tk-unreal.project:
     tk-multi-shotgunpanel: "@settings.tk-multi-shotgunpanel.unreal"
   location: "@tk-unreal.location"
   menu_favourites:
-  - {app_instance: tk-multi-publish2, name: 'Publish...'}
+  - {app_instance: tk-multi-publish2, name: 'Publish...'} #퍼블리시 메뉴 추가해도 퍼블리시 메뉴 안나옴
   run_at_startup:
   - {app_instance: tk-multi-shotgunpanel, name: ''}
-  - {app_instance: tk-multi-publish2, name: 'Publish...'}
+  - {app_instance: tk-multi-publish2, name: 'Publish...'} #퍼블리시 메뉴 추가해도 퍼블리시 메뉴 안나옴
   launch_builtin_plugins: [basic]
   automatic_context_switch: false
