@@ -494,6 +494,8 @@ class UnrealMoviePublishPlugin(HookBaseClass):
 
         if self._render_format == "exr":
             exr_files = sorted([f for f in glob.glob(os.path.join(output_dir, base_name + "_*.exr")) if os.path.isfile(f)])
+            with open(os.path.join(os.path.expanduser('~'), 'test1.log'), 'a+') as file:
+                file.write(mov_files)            
             if not exr_files:
                 raise RuntimeError("No EXR frames found after rendering.")
             exr_pattern = os.path.join(output_dir, base_name + "%04d.exr")
@@ -501,10 +503,13 @@ class UnrealMoviePublishPlugin(HookBaseClass):
             item.properties["publish_path"] = exr_pattern
         else:
             mov_files = sorted([f for f in glob.glob(os.path.join(output_dir, base_name + "_*.mov")) if os.path.isfile(f)])
+            with open(os.path.join(os.path.expanduser('~'), 'test2.log'), 'a+') as file:
+                file.write(mov_files)
             if not mov_files:
                 raise RuntimeError("No MOV file found after rendering.")
             mov_file = mov_files[0]
             item.properties["path"] = mov_file
+            
             item.properties["publish_path"] = mov_file
 
         super(UnrealMoviePublishPlugin, self).publish(settings, item)

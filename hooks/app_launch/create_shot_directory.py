@@ -25,7 +25,7 @@ class FolderCreatorDialog(QDialog):
         self.sequence_input = QLineEdit()
         self.shot_input = QLineEdit()
 
-        # Tab moveable setting
+        # Tab moveable setting++++====
         self.episode_input.setFocusPolicy(Qt.StrongFocus)
         self.sequence_input.setFocusPolicy(Qt.StrongFocus)
         self.shot_input.setFocusPolicy(Qt.StrongFocus)
