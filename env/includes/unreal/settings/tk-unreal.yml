@@ -27,11 +27,10 @@ settings.tk-unreal.project:
       location: "@apps.tk-multi-pythonconsole.location"
     tk-multi-shotgunpanel: "@settings.tk-multi-shotgunpanel.unreal"
   location: "@tk-unreal.location"
-  menu_favourites: []
+  menu_favourites:
+  - {app_instance: tk-multi-publish2, name: 'Publish...'}
   run_at_startup:
   - {app_instance: tk-multi-shotgunpanel, name: ''}
   - {app_instance: tk-multi-publish2, name: 'Publish...'}
   launch_builtin_plugins: [basic]
   automatic_context_switch: false
-  # hook_load_fbx: "{self}/hooks/load_fbx.py"
-  # hook_publish_asset: "{self}/hooks/tk-multi-publish2/basic/publish_asset.py"
