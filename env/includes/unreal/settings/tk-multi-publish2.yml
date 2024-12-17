@@ -8,9 +8,9 @@ publish_help_url: &help_url "https://support.shotgunsoftware.com/hc/en-us/articl
 
 includes:
 - ../../app_locations.yml
-
+#원래 코드-> config로만 수정
 settings.tk-multi-publish2.unreal.project:
-  collector: "{self}/collector.py:{engine}/tk-multi-publish2/basic/collector.py"
+  collector: "{self}/collector.py:{config}/tk-multi-publish2/basic/collector.py"
   publish_plugins:
   - name: Publish to ShotGrid
     hook: "{self}/publish_file.py"
@@ -18,27 +18,50 @@ settings.tk-multi-publish2.unreal.project:
   - name: Upload for review
     hook: "{self}/upload_version.py"
     settings: {}
-  - name: Begin file versioning
-    hook: "{config}/hooks/tk-multi-publish2/basic/start_version_control.py"
+  - name: Publish to ShotGrid
+    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/publish_session.py"
     settings: {}
-  # Additional publish plugins (commented out for future reference)
-  # - name: Publish to ShotGrid
-  #   hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
-  #   settings: {}
-  # - name: Export FBX and Publish to ShotGrid
-  #   hook: "{self}/publish_file.py:{config}/hooks/tk-multi-publish2/basic/publish_asset.py"
-  #   settings:
-  #     Publish Template: unreal.asset_publish
-  #     Additional Fields:
-  #       sg_asset_type: "{context.entity.sg_asset_type}"
-  #       Asset: "{context.entity.code}"
-  #       Step: "{context.step.short_name}"
-  # - name: Render Movie and Submit for Review
-  #   hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_movie.py"
-  #   settings:
-  #     Publish Template: unreal.movie_publish
+  - name: Export FBX and Publish to ShotGrid
+    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/publish_asset.py"
+    settings:
+        Publish Template: unreal.asset_publish
+  - name: Render Movie and Submit for Review
+    hook: "{self}/publish_file.py:{config}/tk-multi-publish2/basic/publish_movie.py"
+    settings:
+        Publish Template: unreal.movie_publish
   help_url: *help_url
   location: "@apps.tk-multi-publish2.location"
+
+# settings.tk-multi-publish2.unreal.project:
+#   collector: "{self}/collector.py:{engine}/tk-multi-publish2/basic/collector.py"
+#   publish_plugins:
+#   - name: Publish to ShotGrid
+#     hook: "{self}/publish_file.py"
+#     settings: {}
+#   - name: Upload for review
+#     hook: "{self}/upload_version.py"
+#     settings: {}
+#   - name: Begin file versioning
+#     hook: "{config}/hooks/tk-multi-publish2/basic/start_version_control.py"
+#     settings: {}
+#   # Additional publish plugins (commented out for future reference)
+#   # - name: Publish to ShotGrid
+#   #   hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_session.py"
+#   #   settings: {}
+#   # - name: Export FBX and Publish to ShotGrid
+#   #   hook: "{self}/publish_file.py:{config}/hooks/tk-multi-publish2/basic/publish_asset.py"
+#   #   settings:
+#   #     Publish Template: unreal.asset_publish
+#   #     Additional Fields:
+#   #       sg_asset_type: "{context.entity.sg_asset_type}"
+#   #       Asset: "{context.entity.code}"
+#   #       Step: "{context.step.short_name}"
+#   # - name: Render Movie and Submit for Review
+#   #   hook: "{self}/publish_file.py:{engine}/tk-multi-publish2/basic/publish_movie.py"
+#   #   settings:
+#   #     Publish Template: unreal.movie_publish
+#   help_url: *help_url
+#   location: "@apps.tk-multi-publish2.location"
 
 settings.tk-multi-publish2.maya.asset_step.unreal:
   collector: "{self}/collector.py:{engine}/tk-multi-publish2/basic/collector.py:{tk-framework-unrealqt_v1.x.x}/tk-multi-publish2/tk-maya/basic/collector.py"
