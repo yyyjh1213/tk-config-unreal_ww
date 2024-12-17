@@ -140,7 +140,6 @@ keys:
         choices:
             ma: Maya Ascii (.ma)
             mb: Maya Binary (.mb)
-            fbx: FBX (.fbx)
         default: mb
         alias: extension
     tail:

@@ -179,3 +179,68 @@ Maya FBX 퍼블리싱 기능의 기본 구조가 완성되었으며, 안정적�
 2. 개발자 문서 보강
    - API 문서
    - 아키텍처 설명
+
+## 11. 버그 수정 - Shotgun 퍼블리시 등록
+
+### 11.1 문제 상황
+- Maya FBX 퍼블리시 후 Shotgun에 파일 등록 실패
+- 부모 클래스의 `_save_to_shotgun` 메서드 호출 시 AttributeError 발생
+
+### 11.2 해결 방법
+1. `_register_publish` 메서드 수정
+   - 부모 클래스 메서드 대신 `publisher.register_publish` 직접 호출
+   - Version 엔티티 생성 후 연결
+   - 상세한 에러 로깅 추가
+
+```python
+def _register_publish(self, settings, item, publish_path):
+    """
+    Register the publish with Shotgun
+    """
+    publisher = self.parent
+    
+    # Get the publish info
+    publish_version = publisher.util.get_version_number(publish_path)
+    publish_name = publisher.util.get_publish_name(publish_path)
+    
+    # Create version in Shotgun
+    version_data = {
+        "project": publisher.context.project,
+        "code": publish_name,
+        "description": item.description,
+        "entity": publisher.context.entity,
+        "sg_task": publisher.context.task,
+        "created_by": publisher.context.user,
+        "user": publisher.context.user,
+        "sg_status_list": "rev",
+        "sg_path_to_frames": publish_path
+    }
+    version = publisher.shotgun.create("Version", version_data)
+    
+    # Register the publish
+    publish_data = {
+        "tk": publisher.sgtk,
+        "context": publisher.context,
+        "comment": item.description,
+        "path": publish_path,
+        "name": publish_name,
+        "created_by": publisher.context.user,
+        "version_number": publish_version,
+        "published_file_type": "FBX File",
+        "version_entity": version
+    }
+    publisher.register_publish(**publish_data)
+```
+
+### 11.3 개선 효과
+1. 안정성 향상
+   - 부모 클래스 의존성 제거
+   - 직접적인 Shotgun API 사용
+
+2. 에러 처리 강화
+   - Version 생성과 Publish 등록 분리
+   - 각 단계별 상세 에러 메시지
+
+3. 추적성 개선
+   - Version과 PublishedFile 엔티티 연결
+   - 작업 이력 추적 용이
