@@ -92,3 +92,47 @@ settings.tk-multi-publish2.unreal.project:
 - publish 설정이 올바르게 적용되는지 확인
 - publish 후 ShotGrid에서 데이터가 정상적으로 표시되는지 확인
 - 권한 설정에 따른 publish 기능 동작 확인
+
+## 3. FBX Export 템플릿 경로 수정
+
+### 3.1 원본 코드
+```yaml
+# core/templates.yml
+maya_shot_fbx:
+    definition: '@shot_root/pub/maya/fbx/{name}/v{version}/{Shot}_{name}_v{version}.fbx'
+    root_name: primary
+
+maya_asset_publish_fbx:
+    definition: '@asset_root/pub/maya/fbx/{name}.{Step}.v{version}.fbx'
+    root_name: primary
+
+# env/includes/unreal/templates.yml
+unreal.maya_asset_fbx_publish:
+    definition: '@asset_root/pub/fbx/{name}.v{version}.fbx'
+```
+
+### 3.2 수정된 코드
+```yaml
+# core/templates.yml
+# maya_shot_fbx와 maya_asset_publish_fbx 템플릿 주석 처리
+
+# env/includes/unreal/templates.yml
+unreal.maya_asset_fbx_publish:
+    definition: '@asset_root/pub/maya/fbx/{name}.{Step}.v{version}.fbx'
+```
+
+### 3.3 변경 사항 설명
+- 기존의 `maya_shot_fbx`와 `maya_asset_publish_fbx` 템플릿을 주석 처리하여 비활성화
+- `unreal.maya_asset_fbx_publish` 템플릿으로 통합하여 FBX 파일 경로 구조 단순화
+- 새로운 경로 구조에 `{Step}` 정보를 포함하여 작업 단계 구분 가능
+- 버전 관리를 위한 `v{version}` 요소 유지
+
+### 3.4 기대 효과
+- FBX 파일 경로 구조 통일로 관리 효율성 향상
+- 작업 단계(`{Step}`)를 파일명에 포함하여 에셋의 제작 단계 명확히 구분
+- 버전 관리 기능 유지로 작업 이력 추적 가능
+
+### 3.5 후속 작업
+- 새로운 템플릿 구조에 따른 FBX Export 기능 테스트
+- 기존 FBX 파일들의 새로운 경로 구조로의 마이그레이션 계획 수립
+- Unreal Engine에서 FBX Import 시 경로 인식 테스트
