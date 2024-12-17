@@ -1,5 +1,21 @@
 # Progress Report - 2024.12.17
 
+## 주요 오류 사항
+
+### 1. Publish 메뉴 미표시 문제
+- **현상**: Unreal Engine의 ShotGrid 메뉴에서 Publish 항목이 지속적으로 보이지 않는 문제 발생
+- **원인 분석**: 
+  - 메뉴 등록 과정에서 설정 파일의 구조적 문제 의심
+  - engine_locations.yml 파일의 경로 설정 문제 가능성
+  - publish2 앱의 초기화 과정에서 오류 발생 가능성
+- **해결 시도**:
+  - display_name 설정 추가
+  - 앱 설정 파일 재검토
+  - 로그 분석을 통한 원인 파악 중
+- **현재 상태**: 
+  - 문제 지속 중
+  - 추가 조사 및 해결 방안 모색 필요
+
 ## 1. Maya 파일 저장 시 이름 자동화 개선
 
 ### 1.1 원본 코드
@@ -83,15 +99,15 @@ settings.tk-multi-publish2.unreal.project:
 - 기존 publish 설정과 연동되어 정상 작동
 
 ### 2.5 실제 결과
-- Unreal Engine 재시작 후 ShotGrid 메뉴에 "Publish..." 항목 표시
-- 메뉴 클릭 시 publish 다이얼로그 정상 표시
-- 기존 publish 기능과 정상 연동
+- Unreal Engine 재시작 후에도 "Publish..." 메뉴 항목이 나타나지 않는 문제 지속
+- 설정 파일은 정상적으로 수정되었으나 메뉴 등록 실패
+- 추가 디버깅 및 설정 검토 필요
 
 ### 2.6 테스트해봐야 하는 것들
-- 다양한 Asset 유형에 대한 publish 테스트
-- publish 설정이 올바르게 적용되는지 확인
-- publish 후 ShotGrid에서 데이터가 정상적으로 표시되는지 확인
-- 권한 설정에 따른 publish 기능 동작 확인
+- engine_locations.yml 파일 설정 확인
+- 로그 파일에서 메뉴 등록 관련 오류 메시지 분석
+- 다른 ShotGrid 메뉴 항목들과의 설정 비교
+- Unreal Engine과 ShotGrid 통합 설정 전반 검토
 
 ## 3. FBX Export 템플릿 경로 수정
 
@@ -136,3 +152,29 @@ unreal.maya_asset_fbx_publish:
 - 새로운 템플릿 구조에 따른 FBX Export 기능 테스트
 - 기존 FBX 파일들의 새로운 경로 구조로의 마이그레이션 계획 수립
 - Unreal Engine에서 FBX Import 시 경로 인식 테스트
+
+## 4. Maya Asset FBX Publish 경로 구조 변경
+
+### 4.1 원본 코드
+```yaml
+# templates.yml
+unreal.maya_asset_fbx_publish:
+    definition: '@asset_root/pub/fbx/{name}.v{version}.fbx'
+```
+
+### 4.2 수정된 코드
+```yaml
+# templates.yml
+unreal.maya_asset_fbx_publish:
+    definition: '@asset_root/pub/maya/fbx/{name}.v{version}.fbx'
+```
+
+### 4.3 변경 사항 설명
+- Maya에서 생성된 FBX 파일들을 위한 전용 하위 디렉토리 생성
+- 기존: pub/fbx/ → 변경: pub/maya/fbx/
+- 에셋 타입별로 구분된 구조로 변경하여 파일 관리 용이성 향상
+
+### 4.4 테스트 필요 사항
+- 새로운 경로에서의 FBX Publish 기능 정상 작동 확인
+- Unreal Engine에서 새 경로의 FBX 파일 임포트 테스트
+- 기존 FBX 파일들의 새 경로 구조로의 마이그레이션 계획 수립
