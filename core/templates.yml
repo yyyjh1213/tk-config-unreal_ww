@@ -60,6 +60,9 @@ keys:
         type: int
     segment_name:
         type: str
+    number:
+        type: int
+        format_spec: "01"
 
     # Represents the optional output name for frames written by the Shotgun Write Node
     nuke.output:
