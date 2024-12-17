@@ -1,0 +1,16 @@
+# Copyright (c) 2015 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+
+# 설명: 프로젝트의 모든 에셋들이 저장되는 최상위 폴더입니다.
+# 관련 템플릿: 모든 에셋 관련 템플릿의 기본 경로로 사용됩니다.
+# 예시 경로: project/assets/
+
+# the type of dynamic content
+type: "static"
+
+# The name of the directory
+name: "assets"

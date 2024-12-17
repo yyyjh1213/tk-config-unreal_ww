@@ -1,0 +1,17 @@
+# Copyright (c) 2015 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+
+# 설명: Unreal Engine에서 익스포트된 에셋들이 저장되는 폴더입니다.
+# 관련 템플릿: unreal.asset_publish
+# 예시 경로: project/assets/unreal/exports/{YYYY}_{MM}_{DD}/
+# 용도: Unreal Engine에서 익스포트된 FBX 파일들을 날짜별로 저장합니다.
+
+# the type of dynamic content
+type: "static"
+
+# The name of the directory
+name: "exports"

@@ -1,0 +1,24 @@
+# Copyright (c) 2015 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+
+# 설명: ShotGrid의 Asset 엔티티와 연결되는 동적 폴더입니다.
+# 관련 템플릿: @asset_root 변수의 기본 경로
+# 예시 경로: project/assets/{Asset_Name}/
+# 용도: 각 에셋별로 고유한 작업 공간을 생성합니다.
+
+# the type of dynamic content
+type: "shotgun_entity"
+
+# the shotgun field to use for the folder name
+name: "{Asset}"
+
+# the Shotgun entity type to connect to
+entity_type: "Asset"
+
+# shotgun filters to apply when getting the list of assets
+filters:
+    - { "path": "project", "relation": "is", "values": [ "$project" ] }

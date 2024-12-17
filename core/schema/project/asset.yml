@@ -1,0 +1,19 @@
+# Copyright (c) 2015 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+
+# the type of dynamic content
+type: "shotgun_entity"
+
+# the shotgun field to use for the folder name
+name: "{Asset}"
+
+# the Shotgun entity type to connect to
+entity_type: "Asset"
+
+# shotgun filters to apply when getting the list of assets
+filters:
+    - { "path": "project", "relation": "is", "values": [ "$project" ] }

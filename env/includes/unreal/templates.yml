@@ -55,7 +55,7 @@ paths:
         definition: '@asset_root/dev/images/{name}_turntable_v{version}.{ue_mov_ext}'
     unreal.maya_turntable_publish:
         definition: '@asset_root/review/{Asset}_{name}_turntable_v{version}.{ue_mov_ext}'
-    # Placeholder location for static mesh assets exported from Unreal
+    # Placeholder location for static mesh assets exported from Unreal 
     # Hook implementation intended to be a starting point for a pipeline
     # No context info used in template, developers expected to further customize
     unreal.asset_publish:

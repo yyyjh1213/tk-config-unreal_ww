@@ -1,0 +1,17 @@
+# Copyright (c) 2015 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+
+# 설명: 에셋의 리뷰용 파일들이 저장되는 폴더입니다.
+# 관련 템플릿: unreal.maya_turntable_publish
+# 예시 경로: project/assets/{Asset_Name}/review/
+# 용도: 완성된 터테이블 렌더링을 리뷰용으로 저장합니다.
+
+# the type of dynamic content
+type: "static"
+
+# The name of the directory
+name: "review"
