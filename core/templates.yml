@@ -610,7 +610,7 @@ paths:
         definition: '@asset_root/pub/maya'
     # The location of WIP files
     maya_asset_work:
-        definition: '@asset_root/dev/maya/{Asset}_{Step}.v{version}.{maya_extension}'
+        definition: '@asset_root/dev/maya/{Asset}_{Step}.v{version}.{maya_extension}' #File Save할 때 이름 나오게 수정하려면 {Asset}->{name}으로 수정 진행
         root_name: primary
     # The location of backups of WIP files
     maya_asset_snapshot:
