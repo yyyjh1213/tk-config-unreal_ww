@@ -1,9 +1,6 @@
 import tank
 import os
 import sys
-import datetime
-import maya.cmds as cmds
-import maya.mel as mel
 
 # Local storage path field for known Oses.
 _OS_LOCAL_STORAGE_PATH_FIELD = {
@@ -57,7 +54,7 @@ class UnrealAssetPublishPlugin(HookBaseClass):
 
     @property
     def item_filters(self):
-        return ["unreal.asset.StaticMesh", "maya.session"]
+        return ["unreal.asset.StaticMesh"]
 
     def accept(self, settings, item):
         """
@@ -79,19 +76,8 @@ class UnrealAssetPublishPlugin(HookBaseClass):
             - checked (bool): If True, the plugin will be checked in the UI, otherwise it will be unchecked.
                             Only applies to accepted tasks.
         """
-        # Check if this is a Maya session
-        if item.type == "maya.session":
-            # Make sure we have meshes in the scene
-            import maya.cmds as cmds
-            if not cmds.ls(type="mesh"):
-                self.logger.warn("No meshes found in the scene")
-                return {"accepted": False}
-            return {"accepted": True}
-        
-        # Check if this is an Unreal asset
         if UNREAL_AVAILABLE and item.properties.get("unreal_asset_path"):
             return {"accepted": True}
-
         return {"accepted": False}
 
     def validate(self, settings, item):
@@ -99,144 +85,48 @@ class UnrealAssetPublishPlugin(HookBaseClass):
         Validates the given item to check that it is ok to publish.
 
         Returns a boolean to indicate validity.
-
-        :param settings: Dictionary of Settings. The keys are strings, matching the keys returned in the settings property.
-                       The values are `Setting` instances.
-        :param item: Item to process
-
-        :returns: True if item is valid, False otherwise.
         """
-        # For Maya sessions, check if we can export FBX
-        if item.type == "maya.session":
-            import maya.cmds as cmds
-            # Check if the scene has any meshes
-            if not cmds.ls(type="mesh"):
-                self.logger.error("No meshes found in the scene")
-                return False
-            return True
+        publisher = self.parent
+        engine = publisher.engine
+        asset_path = item.properties.get("unreal_asset_path")
 
-        # For Unreal assets, validate the asset path
-        if UNREAL_AVAILABLE and item.properties.get("unreal_asset_path"):
-            return True
+        if not UNREAL_AVAILABLE:
+            error_msg = "Unreal is not available. Unable to export asset."
+            self.logger.error(error_msg)
+            raise Exception(error_msg)
 
-        return False
+        if not asset_path:
+            error_msg = "Could not determine the asset path in Unreal."
+            self.logger.error(error_msg)
+            raise Exception(error_msg)
+
+        return True
 
     def publish(self, settings, item):
-        """
-        Executes the publish logic for the given item and settings.
-
-        :param settings: Dictionary of Settings. The keys are strings, matching the keys returned in the settings property.
-                       The values are `Setting` instances.
-        :param item: Item to process
-        """
         publisher = self.parent
-        
+
         # Get the path in a normalized state. No trailing separator, separators are
         # appropriate for current os, no double separators, etc.
-        path = tank.util.ShotgunPath.normalize(item.properties["path"])
+        path = sgtk.util.ShotgunPath.normalize(path)
 
-        # For Maya sessions, export FBX
-        if item.type == "maya.session":
-            # Get the configured publish template
-            publish_template = publisher.get_template_by_name(settings["Publish Template"].value)
-            if not publish_template:
-                self.logger.error("Missing publish template in settings")
-                return False
+        # Get the publish path
+        publish_path = self._get_publish_path(settings, item)
+        
+        # Ensure the publish folder exists
+        publish_folder = os.path.dirname(publish_path)
+        self.parent.ensure_folder_exists(publish_folder)
 
-            # Get fields from the current session
-            work_template = item.properties.get("work_template")
-            if not work_template:
-                self.logger.error("Work template not found")
-                return False
+        # Get the asset path and name
+        asset_path = item.properties["unreal_asset_path"]
+        asset_name = os.path.splitext(os.path.basename(publish_path))[0]
 
-            fields = work_template.get_fields(path)
-            fields["version"] = item.properties.get("publish_version", 1)
-
-            # Update with the fields from the context
-            fields.update(item.context.as_template_fields(publish_template))
-
-            # Get the publish path
-            publish_path = publish_template.apply_fields(fields)
-
-            # Ensure the publish folder exists
-            publish_folder = os.path.dirname(publish_path)
-            self.parent.ensure_folder_exists(publish_folder)
-
-            # Export FBX
-            self._maya_export_fbx(publish_path)
-
-            # Register the publish
-            self._register_publish(settings, item, publish_path)
-
-            return True
-
-        # For Unreal assets
-        if UNREAL_AVAILABLE and item.properties.get("unreal_asset_path"):
-            # Your existing Unreal publish logic here
-            pass
-
-        return False
-
-    def _maya_export_fbx(self, publish_path):
-        """
-        Export the current Maya scene as FBX.
-
-        :param publish_path: The path to export the FBX to
-        """
-        import maya.cmds as cmds
-        import maya.mel as mel
-
-        # Ensure the FBX plugin is loaded
-        if not cmds.pluginInfo("fbxmaya", query=True, loaded=True):
-            cmds.loadPlugin("fbxmaya")
-
-        # Set FBX export settings
-        mel.eval('FBXResetExport')
-        mel.eval('FBXExportFileVersion -v FBX201800')
-        mel.eval('FBXExportUpAxis y')
-        mel.eval('FBXExportShapes -v true')
-        mel.eval('FBXExportSkins -v true')
-        mel.eval('FBXExportSmoothingGroups -v true')
-        mel.eval('FBXExportSmoothMesh -v true')
-        mel.eval('FBXExportTangents -v true')
-        mel.eval('FBXExportTriangulate -v false')
-        mel.eval('FBXExportConstraints -v false')
-        mel.eval('FBXExportCameras -v false')
-        mel.eval('FBXExportLights -v false')
-        mel.eval('FBXExportEmbeddedTextures -v false')
-        mel.eval('FBXExportInputConnections -v false')
-
-        # Export FBX
-        mel.eval('FBXExport -f "{}" -s'.format(publish_path.replace('\\', '/')))
-
-    def _register_publish(self, settings, item, path):
-        """
-        Register the publish using the shotgun api.
-
-        :param settings: Dictionary of Settings. The keys are strings, matching the keys returned in the settings property.
-                       The values are `Setting` instances.
-        :param item: Item to process
-        :param path: Path of the published file
-        """
-        publisher = self.parent
-        path = tank.util.ShotgunPath.normalize(path)
-
-        # Create the publish data
-        publish_data = {
-            "tk": publisher.sgtk,
-            "context": item.context,
-            "comment": item.description,
-            "path": path,
-            "name": os.path.basename(path),
-            "created_by": item.get_property("user"),
-            "version_number": item.get_property("version_number", 1),
-            "thumbnail_path": item.get_thumbnail_as_path(),
-            "published_file_type": item.get_property("published_file_type"),
-            "dependency_paths": item.get_property("dependency_paths", []),
-        }
+        # Export the asset to FBX
+        _unreal_export_asset_to_fbx(publish_folder, asset_path, asset_name)
 
         # Register the publish
-        publisher.publish_file(**publish_data)
+        self._register_publish(settings, item, publish_path)
+
+        return True
 
 def _unreal_export_asset_to_fbx(destination_path, asset_path, asset_name):
     """
@@ -246,14 +136,10 @@ def _unreal_export_asset_to_fbx(destination_path, asset_path, asset_name):
     :param asset_path: The Unreal asset to export to FBX
     :param asset_name: The asset name to use for the FBX filename
     """
-    # Create and configure an asset export task
-    export_task = _generate_fbx_export_task(destination_path, asset_path, asset_name)
-
-    # Run the export task
-    unreal.AssetToolsHelpers.get_asset_tools().export_assets(
-        [export_task],
-        False  # Don't show the export options dialog
-    )
+    task = _generate_fbx_export_task(destination_path, asset_path, asset_name)
+    exported = unreal.Exporter.run_asset_export_task(task)
+    if not exported:
+        raise Exception("Failed to export asset to FBX")
 
 def _generate_fbx_export_task(destination_path, asset_path, asset_name):
     """
@@ -264,22 +150,15 @@ def _generate_fbx_export_task(destination_path, asset_path, asset_name):
     :param asset_name: The FBX filename to export to
     :return the configured AssetExportTask
     """
-    # Create an asset export task
+    # Create the export task
     export_task = unreal.AssetExportTask()
-
-    # The asset to export
+    
+    # Configure the task
     export_task.object = unreal.load_asset(asset_path)
-
-    # The name of the file to export to
-    export_task.filename = os.path.join(destination_path, "%s.fbx" % asset_name)
-
-    # Replace the file if it exists
+    export_task.filename = os.path.join(destination_path, asset_name + ".fbx")
+    export_task.selected = False
     export_task.replace_identical = True
-
-    # Don't auto save the export task settings
-    export_task.automated = True
-
-    # Don't show the export options dialog
     export_task.prompt = False
-
+    export_task.automated = True
+    
     return export_task
