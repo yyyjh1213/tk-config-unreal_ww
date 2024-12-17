@@ -22,7 +22,12 @@ settings.tk-unreal.project:
     tk-multi-about:
       location: "@apps.tk-multi-about.location"
     tk-multi-loader2: "@settings.tk-multi-loader2.unreal"
-    tk-multi-publish2: "@settings.tk-multi-publish2.unreal.project"
+    tk-multi-publish2: 
+      allow_taskless_publishes: true
+      display_name: Publish
+      help_url: null
+      location: "@apps.tk-multi-publish2.location"
+      publish_plugins: '@settings.tk-multi-publish2.unreal.project'
     tk-multi-pythonconsole:
       location: "@apps.tk-multi-pythonconsole.location"
     tk-multi-shotgunpanel: "@settings.tk-multi-shotgunpanel.unreal"
@@ -31,5 +36,6 @@ settings.tk-unreal.project:
   - {app_instance: tk-multi-publish2, name: 'Publish...'}
   run_at_startup:
   - {app_instance: tk-multi-shotgunpanel, name: ''}
+  - {app_instance: tk-multi-publish2, name: 'Publish...'}
   launch_builtin_plugins: [basic]
   automatic_context_switch: false
