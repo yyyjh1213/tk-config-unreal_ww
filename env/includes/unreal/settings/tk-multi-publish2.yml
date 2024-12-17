@@ -10,7 +10,9 @@ includes:
 - ../../app_locations.yml
 
 settings.tk-multi-publish2.unreal.project:
-  display_name: "Publish..." # this is the name of the menu item
+  hook_annotations:
+    actions: [publish_file]
+  display_name: "Publish..."
   collector: "{self}/collector.py:{engine}/tk-multi-publish2/basic/collector.py"
   publish_plugins:
   - name: Publish to ShotGrid
