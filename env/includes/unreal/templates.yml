@@ -2,24 +2,19 @@
 # This file has been modified by Epic Games, Inc. and is subject to the license
 # file included in this repository.
 
+# Import core templates
+includes:
+- ../templates.yml
+
 keys:
-    # Asset keys
-    Asset:
-        type: str
-        shotgun_entity_type: Asset
-        shotgun_field_name: code
-    Step:
-        type: str
-        shotgun_entity_type: Step
-        shotgun_field_name: short_name
-    sg_asset_type:
-        type: str
-        shotgun_entity_type: Asset
-        shotgun_field_name: sg_asset_type
-    version:
-        type: int
-    name:
-        type: str
+    # core keys
+    Step: '@{config}/core/templates.yml/[keys.Step]'
+    Asset: '@{config}/core/templates.yml/[keys.Asset]'
+    sg_asset_type: '@{config}/core/templates.yml/[keys.sg_asset_type]'
+    name: '@{config}/core/templates.yml/[keys.name]'
+    version: '@{config}/core/templates.yml/[keys.version]'
+
+    # keys specific to Unreal
     # These are used by the Loader in Unreal
     ue_sg_asset_type:
         type: str
